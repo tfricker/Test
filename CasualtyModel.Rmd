@@ -43,6 +43,7 @@ suppressPackageStartupMessages(library("lme4"))
 
 Import .shp of the social correlates. Add an hour column into the dataset and rearrange the data.
 ```{r}
+unzip("SocialCorrelates.zip")
 TorSC.sfdf = sf::st_read(dsn = "SocialCorrelates", 
                       layer = "SocialCorrelates", 
                       stringsAsFactors = FALSE)
