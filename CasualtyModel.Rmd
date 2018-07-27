@@ -2,14 +2,13 @@
 title: "Casualty Risk Model"
 author: "Tyler Fricker"
 date: "3/27/2018"
-output: html_document
+output: html_notebook
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 Set working directory and load packages.
 ```{r}
-setwd("~/Dropbox/Tyler")
 suppressPackageStartupMessages(library("ggplot2"))
 suppressPackageStartupMessages(library("ggmap"))
 suppressPackageStartupMessages(library("ggthemes"))
@@ -39,7 +38,7 @@ suppressPackageStartupMessages(library("tmaptools"))
 suppressPackageStartupMessages(library("lubridate"))
 suppressPackageStartupMessages(library("brms"))
 suppressPackageStartupMessages(library("lme4"))
-load(file = "July26.RData")
+#load(file = "July26.RData")
 ```
 
 Import .shp of the social correlates. Add an hour column into the dataset and rearrange the data.
