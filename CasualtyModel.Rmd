@@ -3,11 +3,9 @@ title: "Casualty Risk Model"
 author: "Tyler Fricker"
 date: "3/27/2018"
 output: html_notebook
-editor_options: 
-  chunk_output_type: inline
 ---
 
-Set working directory and load packages.
+Load packages.
 ```{r}
 suppressPackageStartupMessages(library("ggplot2"))
 suppressPackageStartupMessages(library("ggmap"))
@@ -41,22 +39,20 @@ suppressPackageStartupMessages(library("lme4"))
 #load(file = "July26.RData")
 ```
 
-Import .shp of the social correlates. Add an hour column into the dataset and rearrange the data.
+Import `.shp` of the social correlates. Add an date and hour column.
 ```{r}
 unzip("SocialCorrelates.zip")
-TorSC.sfdf = sf::st_read(dsn = "SocialCorrelates", 
+TorSC.sfdf <- sf::st_read(dsn = "SocialCorrelates", 
                       layer = "SocialCorrelates", 
-                      stringsAsFactors = FALSE)
-
-TorSC.sfdf$Date_1 = as.Date(TorSC.sfdf$date)
-TorSC.sfdf = rename(TorSC.sfdf, "Date" = "Date_1")
-TorSC.sfdf$hr = hour(TorSC.sfdf$DateTim)
-TorSC.sfdf = TorSC.sfdf[c(1,2,3,4,51,5:50)]
+                      stringsAsFactors = FALSE) %>%
+  mutate(Date = as.Date(date),
+         hr = hour(DateTim))
 ```
 
-Import .csv of the social correlates.
+Import the `.csv` file containing the social correlates.
 ```{r}
-Torn.df = read.csv("SocialCorrelates.csv", header = TRUE)
+Torn.df <- read.csv("SocialCorrelates.csv", 
+                    header = TRUE)
 ```
 
 ### Models
