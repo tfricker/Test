@@ -1,0 +1,393 @@
+---
+title: "Casualty Risk Model"
+author: "Tyler Fricker"
+date: "3/27/2018"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+Set working directory and load packages.
+```{r}
+setwd("~/Dropbox/Tyler")
+suppressPackageStartupMessages(library("ggplot2"))
+suppressPackageStartupMessages(library("ggmap"))
+suppressPackageStartupMessages(library("ggthemes"))
+suppressPackageStartupMessages(library("dplyr"))
+suppressPackageStartupMessages(library("tidyr"))
+suppressPackageStartupMessages(library("rgdal"))
+suppressPackageStartupMessages(library("rgeos"))
+suppressPackageStartupMessages(library("scales"))
+suppressPackageStartupMessages(library("broom"))
+suppressPackageStartupMessages(library("RColorBrewer"))
+suppressPackageStartupMessages(library("maps"))
+suppressPackageStartupMessages(library("maptools"))
+suppressPackageStartupMessages(library("wesanderson"))
+suppressPackageStartupMessages(library("sf"))
+suppressPackageStartupMessages(library("classInt"))
+suppressPackageStartupMessages(library("leaflet"))
+suppressPackageStartupMessages(library("Hmisc"))
+suppressPackageStartupMessages(library("devtools"))
+suppressPackageStartupMessages(library("tidycensus"))
+suppressPackageStartupMessages(library("purrr"))
+suppressPackageStartupMessages(library("tidyverse"))
+suppressPackageStartupMessages(library("reshape2"))
+suppressPackageStartupMessages(library("raster"))
+suppressPackageStartupMessages(library("MASS"))
+suppressPackageStartupMessages(library("tmap"))
+suppressPackageStartupMessages(library("tmaptools"))
+suppressPackageStartupMessages(library("lubridate"))
+suppressPackageStartupMessages(library("brms"))
+suppressPackageStartupMessages(library("lme4"))
+load(file = "July26.RData")
+```
+
+Import .shp of the social correlates. Add an hour column into the dataset and rearrange the data.
+```{r}
+TorSC.sfdf = sf::st_read(dsn = "SocialCorrelates", 
+                      layer = "SocialCorrelates", 
+                      stringsAsFactors = FALSE)
+
+TorSC.sfdf$Date_1 = as.Date(TorSC.sfdf$date)
+TorSC.sfdf = rename(TorSC.sfdf, "Date" = "Date_1")
+TorSC.sfdf$hr = hour(TorSC.sfdf$DateTim)
+TorSC.sfdf = TorSC.sfdf[c(1,2,3,4,51,5:50)]
+```
+
+Import .csv of the social correlates.
+```{r}
+Torn.df = read.csv("SocialCorrelates.csv", header = TRUE)
+```
+
+### Models
+
+Play with some models
+```{r}
+Torn.df %>%
+  dplyr::filter(cas > 0) %>%
+  dplyr::summarize(meanCas = mean(cas),
+            varCas = var(cas),
+            ratio = varCas/meanCas)
+```
+
+Given the large disparity between the mean and variance of casualties, it appears the data is overdispersed. This suggests that a negative binomial distribution may be best.
+
+Make the dataframe
+```{r}
+df = Torn.df %>%
+  filter(MobileHomes >= 1) %>%
+  mutate(lpopD = log(popD2),
+            led = log(ED),
+            mh = scale(MobileHomes),
+            mh2 = log(MobileHomes),
+            mi = log(MedianIncome),
+            yr = Year)
+```
+
+```{r}
+sfdf = TorSC.sfdf %>%
+  filter(MoblHms >= 1) %>%
+  mutate(lpopD = log(popD2),
+            led = log(ED),
+            mh = MoblHms,
+            mh2 = log(MoblHms),
+            mi = log(MdnIncm),
+            yr = Year)
+```
+
+Create the model. ModelFE is a fixed effects model. ModelNB is a mixed effect, negative bunomial model, and ModelME is a mixed effects model.
+```{r}
+formula = cas ~ lpopD + led + lpopD:led + mh2 + yr
+
+modelFE = glm.nb(formula, data = sfdf, link = log)
+
+modelNB = lmer(cas ~ lpopD + led + lpopD:led + mh + yr + (1|mo) + (1|hr), data = sfdf, family = negative.binomial())
+
+modelME = lmer(log(cas) ~ lpopD + led + lpopD:led + mh + yr + (1|mo) + (1|hr), data = sfdf)
+
+summary(modelNB)
+```
+
+
+Work with the **brms** package. 
+```{r}
+formula = cas | trunc(lb = 1) ~ lpopD + led + lpopD:led + mh2 + yr + (1|mo) + (1|hr)
+
+#formula = cas ~ lpopD + led + lpopD:led + mh + yr + (1|mo)
+
+#family = brms::negbinomial()
+family = brms::lognormal()
+
+modelS = brm(family = family,
+            formula = formula,
+            data = sfdf,
+            prior = set_prior('normal(0,1)'),
+            warmup = 500, iter = 2000, chains = 2, cores = 2, inits = "0",
+            control = list(adapt_delta = .95))
+
+summary(modelS)
+```
+
+The `posterior_predict()` function generates 3000 samples of cas. Compare the distribution of cas statistics (mean, max) with actual cas.
+
+```{r}
+yrep <- posterior_predict(modelS)
+df.yrep <- as.data.frame(yrep)
+df.out <- reshape2::melt(df.yrep) %>%
+  group_by(variable) %>%
+  dplyr::summarize(mx = max(value),
+            mn = mean(value))
+```
+
+Look at the posterior predictive checks.
+```{r}
+ggplot(df.out, aes(mn)) + 
+  geom_histogram(fill = "red", bins = 15, color = "white") +
+  geom_vline(xintercept = exp(mean(log(sfdf$cas))), color = "black", size = 1) +
+  ylab("Posterior Frequency") +
+  xlab("Average Per-Tornado Casualty Rate") +
+  theme_minimal()
+
+ggplot(df.out, aes(mx)) + 
+  geom_histogram(fill = "red", bins = 15, color = "white") +
+  geom_vline(xintercept = max(sfdf$cas), color = "black", size = 1) +
+  ylab("Posterior Frequency") +
+  xlab("Maximum Per-Tornado Casualty Rate") +
+  theme_minimal()
+```
+
+### Assumptions
+
+```{r}
+summary(modelFE)
+pchisq(1360, 1274, lower.tail = FALSE) # model is adequate (p-value < .05)
+```
+
+Observed number of casualties versus predicted rate.
+```{r, eval=FALSE}
+df.glm = st_sf(om = sfdf$om, date = sfdf$Date, state = sfdf$st, obs = sfdf$cas, pre = modelFE$fitted.values, geometry = sfdf$geometry) %>%
+  mutate(differ = obs - pre)
+
+cor(df.glm$obs, df.glm$pre)
+
+df.glm2 = st_sf(om = sfdf$om, date = sfdf$Date, state = sfdf$st, obs = sfdf$cas, pre = exp(fitted.values(modelME)), geometry = sfdf$geometry) %>%
+  mutate(differ = obs - pre)
+
+cor(df.glm2$obs, df.glm2$pre)
+
+df.nb = st_sf(om = sfdf$om, date = sfdf$Date, state = sfdf$st, EF = sfdf$mag, obs = sfdf$cas, pre = fitted.values(modelNB), geometry = sfdf$geometry) %>%
+  mutate(differ = obs - pre)
+
+cor(df.nb$obs, df.nb$pre)
+
+ggplot(df.nb, aes(x = obs, y = pre)) +
+  geom_point() +
+  geom_abline(slope = 1) + 
+  xlab("Observed Number of Casualties") +
+  ylab("Predicted Rate") +
+  scale_x_log10() + scale_y_log10() +
+  geom_text(data=subset(df.nb, obs >= 30),
+            aes(label = state), hjust = 1, vjust = .5)
+
+df.S = st_sf(om = sfdf$om, date = sfdf$Date, state = sfdf$st, EF = sfdf$mag, obs = sfdf$cas, pre = fitted(modelS)[,1], geometry = sfdf$geometry) %>%
+  mutate(differ = obs - pre)
+
+cor(df.S$obs, df.S$pre)
+
+ggplot(df.S, aes(x = obs, y = pre)) +
+  geom_point() +
+  geom_abline(slope = 1) + 
+  xlab("Observed Number of Casualties") +
+  ylab("Predicted Rate") +
+  scale_x_log10() + scale_y_log10() +
+  geom_text(data=subset(df.S, obs >= 30),
+            aes(label = state), hjust = 1.2, vjust = .85)
+```
+
+Look for cases of extreme difference by state.
+
+Top 10 over predictions.
+```{r}
+OverPred = df.S %>%
+  mutate(differ = round(differ)) %>%
+  arrange(differ)
+
+OverPred[1:10,]
+```
+
+Over-Predictions:
+1) Detroit, MI tornado
+2) Hackleburg–Phil Campbell, AL tornado
+3) Nashville, TN tornado
+4) Anderson Hills (Hunstville), AL tornado
+5) St. Louis County, MO tornado
+6) Bridge Creek–Moore, OK tornado
+7) Wichita, KS tornado
+8) Little Rock, AR tornado
+9) Louisville, KY tornado
+10) South Bend, IN tornado
+
+Top 10 under predictions
+```{r}
+UnderPred = df.S%>%
+  mutate(differ = round(differ)) %>%
+  arrange(desc(differ))
+
+UnderPred[1:10,]
+```
+
+Under-Predictions
+1) Joplin, MO tornado
+2) Tuscaloosa-Birmingham, AL tornado
+3) Garland-Rowlett, TX tornado
+4) Gainesville, GA tornado
+5) Camilla, GA tornado (2000)
+6) Camilla, GA tornado (2003)
+7) Picher,OK tornado
+8) Spencer, SD tornado
+9) Madisonville, KY tornado
+10) Ringgold, GA tornado
+-----------------------------------
+Camilla, GA
+
+Camilla is a city in Mitchell County, GA with a population of 5,360 as of the 2010 Census. The racial makeup of the city is roughly 65% African American, 32% White. The median household income in the city is \$22,485 and the per capita income for the city is \$13,117. About 35% of families and 38% of the total population are below the poverty line.
+
+Camilla was hit by two significant tornadoes in the early 2000s, both occurring in the early morning and both traveling through the southeast side of the city. The first tornado (EF3) occurred on February 14, 2000 and resulted in 206 casualties. It tore through two major subdivisions and four mobile home parks just south of Camilla. Reports show 200 homes were destroeyd in the tornado, with another 250 homes damaged. The second tornado (EF3) occurred on March 20, 2003 and resulted in 186 casualties. It took a similar path to the 2000 tornado, destroying 66 homes and damaging another 200.
+
+Reasons for the high casualty count are not entirely known. Camilla's warning system includes tornado sirens along with watches and warnings from the National Weather Service. The city does suffer from a higher percentage of low-income residents, which indicates poor housing quality. In addition, Camilla has a long history of racial segreggation and tension, highlighted by the fact that a fence separating white and black graves at the local cemetary was removed in 2017 (about 40 years after the Civil Rights Act (1968) was passed).
+
+-----------------------------------
+Find discrimination indices here (http://enceladus.isr.umich.edu/race/racestart.asp)
+-----------------------------------
+The model also overperditcs the Grovetown-Augusta, GA tornado (2009-04-10) by 65 casualties, while it underpredicts the Gainesville area, GA tornado (1998-03-20) by more than 100 casualties 174.
+
+Demographics of Grovetown: 71\% white and 20\% black. Household median income at $33,382. The index of discrimination was 44.7.
+Demographics of Augusta, GA: 39.1\% white and 54.7\% black. Household median income at $37,231. The index of discrimination was 44.7.
+
+Demographics of Gainesville, GA: 54.2\% white and 15.2\% black (41.6\% hispanic or latino). Household median income at $38,119. The index of discrimination was 65.
+-----------------------------------
+The model overpredicts the Clinton-Jackson, MS tornado (2011-04-15) by 44 casualties, while the model underpredicts the Columbia, MS tornado (2014-12-23) by about the same amount (32).
+
+Demographics for Clinton, MS: 60\% white and 33.9\% black. Household median income $56,539. The index of discrimination was 61.5.
+Demographics for Jackson, MS: 18.4\% white and 79\% black. Household median income at $30,414. The index of discrimination was 61.5.
+
+Demographics for Columbia, MS: 62.6\% whilte and 35.64\% black. Household median income at $19,644. The index of discrimination was 53.5. 
+-----------------------------------
+The largest underprediction in the model is the Tuscaloosa-Birmingam, AL tornado (2011-04-27) at 1,384 people.
+
+The index of discrimination was 53.4 (Tuscaloosa Metro) and 70.3 (Birmingham Metro).
+
+### Table of Over/Under-predicted casualties and covariates
+
+Location & Date & Over/Under (Difference) & Index of Discrimination (0-100) \\
+
+Grovetown-Augusta, GA & 2009-04-10 & Over (85) & 44.7 \\
+Clinton-Jackson, MS & 2011-04-15 & Over (23) & 61.5 \\
+Marion County, FL & 1995-01-07 & Over (6) & 49.6 \\
+Van Wert, OH & 2002-11-10 & Over (19) & 37.0 \\
+Waynesboro, TN & 2015-12-23 & Over (25) & 54.6 \\
+Anderson Hills, AL & 1995-05-18 & Over (121) & 54.6 \\
+-----------------------------------------------------------------
+Average Index of Discrimination: 50.3
+
+-----------------------------------------------------------------
+Gainesville, GA & 1998-03-20 & Under (170) & 65.0 \\
+Columbia, MS & 2014-12-23 & Under (30) & 53.5 \\
+Tuscaloosa-Birmingam, AL & 2011-04-27 & Under (1115) & 61.9 \\
+Arab-Joppa, AL & 1995-02-16 & Under (94) & 54.6 \\
+Murfreesboro, TN & 2002-04-28 & Under (24) & 57.4 \\
+Rowlett, TX & 2015-12-26 & Under (421) & 59.8 \\
+-----------------------------------------------------------------
+Average Index of Discrimination: 58.7
+
+Map of the top 10 underpredicted tornadoes
+```{r}
+#download.file("http://www2.census.gov/geo/tiger/GENZ2015/shp/cb_2015_us_state_20m.zip", destfile = "states.zip")
+#unzip("states.zip")
+
+us_geo <- read_shape("cb_2015_us_state_20m.shp", as.sf = TRUE, stringsAsFactors = FALSE)
+us_geo = subset(us_geo, !(NAME %in% c("Alaska", "Hawaii", "Puerto Rico")))
+colnames(us_geo)[5] = "st"
+
+us_geo = us_geo %>%
+  dplyr::select("st", "NAME" ,"geometry")
+
+df3 = df2 %>%
+  arrange(desc(differ))
+
+df3 = df3[1:20,]
+
+A = tm_shape(us_geo, projection ="+init=epsg:2163") +
+  tm_borders() +
+  tm_shape(df3) +
+  tm_bubbles("differ", col = "#31a354", sizes.legend = c(200, 600, 1000, 1400), alpha = 0.3, title.size="Underpredicted Casualties", scale = 5/3) + 
+  tm_shape(us_geo) + 
+  tm_borders(col = "grey", alpha = 0.3) +
+  tm_format_Europe(legend.position = c("left", "bottom"),
+                   attr.position = c("left", "bottom"),
+                   legend.frame = FALSE) +
+  tm_layout(frame = FALSE)
+
+df4 = df2 %>%
+  arrange(differ) %>%
+  mutate(differ = abs(differ))
+
+df4 = df4[1:20,]
+
+B = tm_shape(us_geo, projection ="+init=epsg:2163") +
+  tm_borders() +
+  tm_shape(df4) +
+  tm_bubbles("differ", col = "purple", sizes.legend = c(50, 100, 150, 200), alpha = 0.3, title.size="Overpredicted Casualties", scale = 2/3) + 
+  tm_shape(us_geo) + 
+  tm_borders(col = "grey", alpha = 0.3) +
+  tm_format_Europe(legend.position = c("left", "bottom"),
+                   attr.position = c("left", "bottom"),
+                   legend.frame = FALSE) +
+  tm_layout(frame = FALSE)
+
+A = A + tm_style_white(title="A")
+B = B + tm_style_white(title="B")
+
+tmap_arrange(A, B, ncol = 1)
+```
+
+Plot the residuals
+```{r}
+plot(residuals(model))
+```
+
+### Sankey Flow Chart
+
+Sankey flow chart
+```{r}
+df = Torn.df %>%
+  mutate(ratioW = WhitePeople/TotalPeople,
+         ratioB = BlackPeople/TotalPeople,
+         WhiteCas = round(cas * ratioW),
+         BlackCas = round(cas * ratioB))
+
+sigmoid <- function(x_from, x_to, y_from, y_to, scale = 5, n = 100) {
+  x <- seq(-scale, scale, length = n)
+  y <- exp(x) / (exp(x) + 1)
+  tibble(x = (x + scale) / (scale * 2) * (x_to - x_from) + x_from,
+         y = y * (y_to - y_from) + y_from)
+}
+
+n_points <- 400
+data <- tibble(from = rep(4, n_points),
+               to = sample(1:4, n_points, TRUE),
+               color = sample(c("A", "B"), n_points, TRUE)) 
+
+sigmoid(0, 1, as.numeric(data[2, 1]), as.numeric(data[2, 2]), 
+        n = 100, scale = 10) %>%
+  ggplot(aes(x, y)) +
+  geom_point()
+
+p = sigmoid(0, 1, as.numeric(data[2, 1]), as.numeric(data[2, 2]),
+             n = 100, scale = 10) %>%
+  mutate(time = row_number()) %>%
+  ggplot(aes(x, y, frame = time)) +
+  geom_point()
+
+gganimate(p)
+```
