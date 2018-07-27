@@ -49,80 +49,95 @@ TorSC.sfdf <- sf::st_read(dsn = "SocialCorrelates",
          hr = hour(DateTim))
 ```
 
-Import the `.csv` file containing the social correlates.
-```{r}
-Torn.df <- read.csv("SocialCorrelates.csv", 
-                    header = TRUE)
-```
+### Data Analysis
 
-### Models
-
-Play with some models
+Preliminary analysis
 ```{r}
-Torn.df %>%
-  dplyr::filter(cas > 0) %>%
+as.data.frame(TorSC.sfdf) %>%
+  filter(cas > 0) %>%
   dplyr::summarize(meanCas = mean(cas),
             varCas = var(cas),
             ratio = varCas/meanCas)
 ```
 
-Given the large disparity between the mean and variance of casualties, it appears the data is overdispersed. This suggests that a negative binomial distribution may be best.
+Given the large disparity between the mean and variance of casualties the casualty counts are over-dispersed relative to a Poisson distribution. This suggests that a negative binomial distribution may be best.
 
-Make the dataframe
+Make a data frame. About 13% of all tornado casualties occurred in regions estimated to have at least one mobile home.
 ```{r}
-df = Torn.df %>%
-  filter(MobileHomes >= 1) %>%
-  mutate(lpopD = log(popD2),
-            led = log(ED),
-            mh = scale(MobileHomes),
-            mh2 = log(MobileHomes),
-            mi = log(MedianIncome),
-            yr = Year)
+as.data.frame(TorSC.sfdf) %>%
+  group_by(MoblHms >= 1) %>%
+  dplyr::summarise(nC = sum(cas),
+                   nT = n())
 ```
 
+
 ```{r}
-sfdf = TorSC.sfdf %>%
+df <- as.data.frame(TorSC.sfdf) %>%
   filter(MoblHms >= 1) %>%
   mutate(lpopD = log(popD2),
-            led = log(ED),
-            mh = MoblHms,
-            mh2 = log(MoblHms),
-            mi = log(MdnIncm),
-            yr = Year)
+         lED = log(ED),
+         lcas = log(cas),
+         lmi = log(MdnIncm),
+         lmh = log(MoblHms),
+         yr = scale(Year),
+         pW = WhitPpl/TotlPpl,
+         pB = BlckPpl/TotlPpl)
 ```
 
-Create the model. ModelFE is a fixed effects model. ModelNB is a mixed effect, negative bunomial model, and ModelME is a mixed effects model.
+### Models
+
+Try some fixed effects only models.
 ```{r}
-formula = cas ~ lpopD + led + lpopD:led + mh2 + yr
+formula1 <- cas ~ yr + lpopD + lED + lpopD:lED + lmh
+formula2 <- lcas ~ yr + lpopD + lED + lpopD:lED + lmh
 
-modelFE = glm.nb(formula, data = sfdf, link = log)
+m1 <- glm.nb(formula1, link = log, data = df)
+m2 <- lm(formula2, data = df)
 
-modelNB = lmer(cas ~ lpopD + led + lpopD:led + mh + yr + (1|mo) + (1|hr), data = sfdf, family = negative.binomial())
 
-modelME = lmer(log(cas) ~ lpopD + led + lpopD:led + mh + yr + (1|mo) + (1|hr), data = sfdf)
+summary(m1)
+summary(m2)
 
-summary(modelNB)
+cor(df$cas, exp(predict(m1)))
+cor(df$cas, exp(predict(m2)))
+
+AIC(m1); AIC(m2)
+```
+
+Try some mixed effects models.
+```{r}
+formula3 <- cas ~ yr + lpopD + lED + lpopD:lED + lmh + (1|mo) + (1|hr)
+m3 <- glmer(formula3, data = df, family = negative.binomial(theta = m1$theta))
+
+formula4 <- lcas ~ yr + lpopD + lED + lpopD:lED + lmh + (1|mo) + (1|hr)
+m4 <- lmer(formula4, data = df)
+
+summary(m4)
 ```
 
 
 Work with the **brms** package. 
 ```{r}
-formula = cas | trunc(lb = 1) ~ lpopD + led + lpopD:led + mh2 + yr + (1|mo) + (1|hr)
+options(mc.cores = parallel::detectCores())
 
-#formula = cas ~ lpopD + led + lpopD:led + mh + yr + (1|mo)
+formula5 <- cas | trunc(lb = 1) ~ yr + lpopD + lED + lpopD:lED + lmh + (1|mo) + (1|hr)
+family <- brms::lognormal()
 
-#family = brms::negbinomial()
-family = brms::lognormal()
+m5 <- brm(family = family,
+          formula = formula5,
+          data = df,
+          prior = set_prior('normal(0,1)'),
+          warmup = 500, iter = 2000, chains = 2, cores = 2, inits = "0",
+          control = list(adapt_delta = .95))
 
-modelS = brm(family = family,
-            formula = formula,
-            data = sfdf,
-            prior = set_prior('normal(0,1)'),
-            warmup = 500, iter = 2000, chains = 2, cores = 2, inits = "0",
-            control = list(adapt_delta = .95))
-
-summary(modelS)
+summary(m5)
 ```
+
+```{r}
+pp_check(m5, type = "stat")
+```
+
+
 
 The `posterior_predict()` function generates 3000 samples of cas. Compare the distribution of cas statistics (mean, max) with actual cas.
 
