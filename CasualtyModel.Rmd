@@ -36,7 +36,6 @@ suppressPackageStartupMessages(library("tmaptools"))
 suppressPackageStartupMessages(library("lubridate"))
 suppressPackageStartupMessages(library("brms"))
 suppressPackageStartupMessages(library("lme4"))
-#load(file = "July26.RData")
 ```
 
 Import `.shp` of the social correlates. Add an date and hour column.
@@ -142,7 +141,7 @@ pp_check(m5, type = "stat")
 The `posterior_predict()` function generates 3000 samples of cas. Compare the distribution of cas statistics (mean, max) with actual cas.
 
 ```{r}
-yrep <- posterior_predict(modelS)
+yrep <- posterior_predict(m5)
 df.yrep <- as.data.frame(yrep)
 df.out <- reshape2::melt(df.yrep) %>%
   group_by(variable) %>%
@@ -154,14 +153,14 @@ Look at the posterior predictive checks.
 ```{r}
 ggplot(df.out, aes(mn)) + 
   geom_histogram(fill = "red", bins = 15, color = "white") +
-  geom_vline(xintercept = exp(mean(log(sfdf$cas))), color = "black", size = 1) +
+  geom_vline(xintercept = exp(mean(log(df$cas))), color = "black", size = 1) +
   ylab("Posterior Frequency") +
   xlab("Average Per-Tornado Casualty Rate") +
   theme_minimal()
 
 ggplot(df.out, aes(mx)) + 
-  geom_histogram(fill = "red", bins = 15, color = "white") +
-  geom_vline(xintercept = max(sfdf$cas), color = "black", size = 1) +
+  geom_histogram(fill = "red", bins = 35, color = "white") +
+  geom_vline(xintercept = max(df$cas), color = "black", size = 1) +
   ylab("Posterior Frequency") +
   xlab("Maximum Per-Tornado Casualty Rate") +
   theme_minimal()
