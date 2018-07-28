@@ -7,27 +7,18 @@ output: html_notebook
 
 Load packages.
 ```{r}
-suppressPackageStartupMessages(library("ggplot2"))
-suppressPackageStartupMessages(library("ggmap"))
-suppressPackageStartupMessages(library("ggthemes"))
-suppressPackageStartupMessages(library("dplyr"))
-suppressPackageStartupMessages(library("tidyr"))
-suppressPackageStartupMessages(library("rgdal"))
-suppressPackageStartupMessages(library("rgeos"))
-suppressPackageStartupMessages(library("sf"))
-suppressPackageStartupMessages(library("tidycensus"))
-suppressPackageStartupMessages(library("tidyverse"))
-suppressPackageStartupMessages(library("lubridate"))
-suppressPackageStartupMessages(library("brms"))
-suppressPackageStartupMessages(library("lme4"))
+library("ggplot2")
+library("dplyr")
+library(lubridate)
+library("sf")
 ```
 
-Import `.shp` of the social correlates. Add an date and hour column.
+Import `SocialCorrelates.shp` containing the casualty-producing tornadoes since 1995 and estimates of socioeconomic and demographic data at the tornado level. Add `Date` and `hr` columns.
 ```{r}
 unzip("SocialCorrelates.zip")
-TorSC.sfdf <- sf::st_read(dsn = "SocialCorrelates", 
-                      layer = "SocialCorrelates", 
-                      stringsAsFactors = FALSE) %>%
+Tor.sfdf <- st_read(dsn = "SocialCorrelates", 
+                    layer = "SocialCorrelates", 
+                    stringsAsFactors = FALSE) %>%
   mutate(Date = as.Date(date),
          hr = hour(DateTim))
 ```
@@ -36,26 +27,27 @@ TorSC.sfdf <- sf::st_read(dsn = "SocialCorrelates",
 
 Preliminary analysis
 ```{r}
-as.data.frame(TorSC.sfdf) %>%
+as.data.frame(Tor.sfdf) %>%
   filter(cas > 0) %>%
-  dplyr::summarize(meanCas = mean(cas),
+  summarize(meanCas = mean(cas),
             varCas = var(cas),
             ratio = varCas/meanCas)
 ```
 
-Given the large disparity between the mean and variance of casualties the casualty counts are over-dispersed relative to a Poisson distribution. This suggests that a negative binomial distribution may be best.
+Given the large disparity between the mean and variance of casualties the casualty counts are over-dispersed relative to a Poisson distribution. This suggests that a negative binomial distribution may be better.
 
-Make a data frame. About 13% of all tornado casualties occurred in regions estimated to have at least one mobile home.
+The number of tornadoes and the number of casualties conditional on at least one mobile home. 
 ```{r}
 as.data.frame(TorSC.sfdf) %>%
   group_by(MoblHms >= 1) %>%
-  dplyr::summarise(nC = sum(cas),
-                   nT = n())
+  summarise(nC = sum(cas),
+            nT = n())
 ```
+About 13% of all tornado casualties occurred in regions estimated to have at least one mobile home.
 
-
+Create a new data frame with columns containing logged and scaled variables.
 ```{r}
-df <- as.data.frame(TorSC.sfdf) %>%
+df <- as.data.frame(Tor.sfdf) %>%
   filter(MoblHms >= 1) %>%
   mutate(lpopD = log(popD2),
          lED = log(ED),
@@ -71,6 +63,7 @@ df <- as.data.frame(TorSC.sfdf) %>%
 
 Try some fixed effects only models.
 ```{r}
+library(MASS)
 formula1 <- cas ~ yr + lpopD + lED + lpopD:lED + lmh
 formula2 <- lcas ~ yr + lpopD + lED + lpopD:lED + lmh
 
@@ -83,14 +76,11 @@ summary(m2)
 
 cor(df$cas, exp(predict(m1)))
 cor(df$cas, exp(predict(m2)))
-
-AIC(m1); AIC(m2)
 ```
 
 Try some mixed effects models.
 ```{r}
-formula3 <- cas ~ yr + lpopD + lED + lpopD:lED + lmh + (1|mo) + (1|hr)
-m3 <- glmer(formula3, data = df, family = negative.binomial(theta = m1$theta))
+library(lme4)
 
 formula4 <- lcas ~ yr + lpopD + lED + lpopD:lED + lmh + (1|mo) + (1|hr)
 m4 <- lmer(formula4, data = df)
@@ -99,11 +89,14 @@ summary(m4)
 ```
 
 
-Work with the **brms** package. 
+Work with the **brms** package for mixed effects model.
 ```{r}
+library(brms)
 options(mc.cores = parallel::detectCores())
 
 formula5 <- cas | trunc(lb = 1) ~ yr + lpopD + lED + lpopD:lED + lmh + (1|mo) + (1|hr)
+
+formula5 <- cas ~ yr + lpopD + lED + lpopD:lED + lmh + (1|mo) + (1|hr)
 family <- brms::lognormal()
 
 m5 <- brm(family = family,
