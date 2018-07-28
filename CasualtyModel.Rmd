@@ -259,14 +259,14 @@ Demographics of Grovetown: 71\% white and 20\% black. Household median income at
 Demographics of Augusta, GA: 39.1\% white and 54.7\% black. Household median income at $37,231. The index of discrimination was 44.7.
 
 Demographics of Gainesville, GA: 54.2\% white and 15.2\% black (41.6\% hispanic or latino). Household median income at $38,119. The index of discrimination was 65.
------------------------------------
+
 The model overpredicts the Clinton-Jackson, MS tornado (2011-04-15) by 44 casualties, while the model underpredicts the Columbia, MS tornado (2014-12-23) by about the same amount (32).
 
 Demographics for Clinton, MS: 60\% white and 33.9\% black. Household median income $56,539. The index of discrimination was 61.5.
 Demographics for Jackson, MS: 18.4\% white and 79\% black. Household median income at $30,414. The index of discrimination was 61.5.
 
 Demographics for Columbia, MS: 62.6\% whilte and 35.64\% black. Household median income at $19,644. The index of discrimination was 53.5. 
------------------------------------
+
 The largest underprediction in the model is the Tuscaloosa-Birmingam, AL tornado (2011-04-27) at 1,384 people.
 
 The index of discrimination was 53.4 (Tuscaloosa Metro) and 70.3 (Birmingham Metro).
