@@ -250,9 +250,8 @@ Camilla was hit by two significant tornadoes in the early 2000s, both occurring 
 
 Reasons for the high casualty count are not entirely known. Camilla's warning system includes tornado sirens along with watches and warnings from the National Weather Service. The city does suffer from a higher percentage of low-income residents, which indicates poor housing quality. In addition, Camilla has a long history of racial segreggation and tension, highlighted by the fact that a fence separating white and black graves at the local cemetary was removed in 2017 (about 40 years after the Civil Rights Act (1968) was passed).
 
------------------------------------
-Find discrimination indices here (http://enceladus.isr.umich.edu/race/racestart.asp)
------------------------------------
+### Find discrimination indices here (http://enceladus.isr.umich.edu/race/racestart.asp)
+
 The model also overperditcs the Grovetown-Augusta, GA tornado (2009-04-10) by 65 casualties, while it underpredicts the Gainesville area, GA tornado (1998-03-20) by more than 100 casualties 174.
 
 Demographics of Grovetown: 71\% white and 20\% black. Household median income at $33,382. The index of discrimination was 44.7.
@@ -281,17 +280,17 @@ Marion County, FL & 1995-01-07 & Over (6) & 49.6 \\
 Van Wert, OH & 2002-11-10 & Over (19) & 37.0 \\
 Waynesboro, TN & 2015-12-23 & Over (25) & 54.6 \\
 Anderson Hills, AL & 1995-05-18 & Over (121) & 54.6 \\
------------------------------------------------------------------
+
 Average Index of Discrimination: 50.3
 
------------------------------------------------------------------
+
 Gainesville, GA & 1998-03-20 & Under (170) & 65.0 \\
 Columbia, MS & 2014-12-23 & Under (30) & 53.5 \\
 Tuscaloosa-Birmingam, AL & 2011-04-27 & Under (1115) & 61.9 \\
 Arab-Joppa, AL & 1995-02-16 & Under (94) & 54.6 \\
 Murfreesboro, TN & 2002-04-28 & Under (24) & 57.4 \\
 Rowlett, TX & 2015-12-26 & Under (421) & 59.8 \\
------------------------------------------------------------------
+
 Average Index of Discrimination: 58.7
 
 Map of the top 10 underpredicted tornadoes
