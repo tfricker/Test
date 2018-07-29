@@ -50,7 +50,6 @@ About 13% of all tornado casualties occurred in regions estimated to have at lea
 Create a new data frame with columns containing logged and scaled variables.
 ```{r}
 df <- as.data.frame(Tor.sfdf) %>%
-#  filter(MoblHms > 0) %>%
   mutate(lpopD = log(popD2),
          lED = log(ED),
          lcas = log(cas),
@@ -67,8 +66,8 @@ df <- as.data.frame(Tor.sfdf) %>%
 Try some fixed effects only models.
 ```{r}
 library(MASS)
-formula1 <- cas ~ yr + lpopD + lED + lpopD:lED + lmh
-formula2 <- lcas ~ yr + lpopD + lED + lpopD:lED + lmh
+formula1 <- cas ~ yr + lpopD + lED + lpopD:lED + smh
+formula2 <- lcas ~ yr + lpopD + lED + lpopD:lED + smh
 
 m1 <- glm.nb(formula1, link = log, data = df)
 m2 <- lm(formula2, data = df)
@@ -84,29 +83,27 @@ Try some mixed effects models.
 ```{r}
 library(lme4)
 
-formula4 <- lcas ~ yr + lpopD + lED + lpopD:lED + lmh + (1|mo) + (1|hr)
+formula4 <- lcas ~ yr + lpopD + lED + lpopD:lED + smh + (1|mo) + (1|hr)
 m4 <- lmer(formula4, data = df)
 
 summary(m4)
+cor(df$cas, exp(predict(m4)))
 ```
 
-
-Work with the **brms** package for mixed effects model.
+Work with the **brms** package for mixed effects model. Set `inits` to `"0"` rather than the default `"random"`.
 ```{r}
 library(brms)
-options(mc.cores = parallel::detectCores())
 
 formula5 <- cas | trunc(lb = 1) ~ yr + lpopD + lED + lpopD:lED + smh + (1|hr) + (1|mo)
-
 get_prior(formula5, data = df, family = lognormal)
 
 m5 <- brm(formula = formula5,
           data = df, family = lognormal,
           prior = c(set_prior("normal(0,5)", class = "b"),
-                    set_prior("student_t(3, 4, 10)", class = "Intercept"),
+                    set_prior("student_t(3, 3, 10)", class = "Intercept"),
                     set_prior("student_t(3, 0, 10)", class = "sd"),
                     set_prior("student_t(3, 0, 10)", class = "sigma")),
-          warmup = 500, iter = 2000, chains = 2,
+          warmup = 500, iter = 2000, chains = 2, inits = "0",
           control = list(adapt_delta = .8))
 
 summary(m5)
@@ -149,21 +146,20 @@ ggplot(df.out, aes(mx)) +
 
 ```{r}
 coefTable <- as.data.frame(summary(m5)$fixed) %>%
-  mutate(lb = exp(`l-95% CI`),
-         ub = exp(`u-95% CI`),
-         mi = exp(`Estimate`),
+  mutate(lb = `l-95% CI`,
+         ub = `u-95% CI`,
+         mi = `Estimate`,
          id = 1:6) %>%
   filter(id %in% c(2, 5, 6)) %>%
   mutate(id2 = 1:3)
 
 ggplot(coefTable, aes(x = id2, y = mi)) +
   geom_hline(yintercept = 0, color = "grey", linetype = "solid") +
-#  geom_hline(yintercept = c(.75, 1.25, 1.5, 1.75), color = "grey", linetype = "dashed") +
+  geom_hline(yintercept = c(-.6, -.3, .3), color = "grey", linetype = "dashed") +
   geom_point() +  
   geom_errorbar(aes(x = id2, ymin = lb, ymax = ub), col = "red", width = 0, size = 2) +
   geom_point() +
   scale_x_reverse(breaks = 1:3, labels = c("Trend", "Mobile Homes", "Interaction")) +
-#  scale_y_continuous(limits = c(.75, 1.75)) +
   ylab("Fixed Effects") + xlab("") +
   theme_minimal() +
   theme(panel.grid.major = element_blank(),
