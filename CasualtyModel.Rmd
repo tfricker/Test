@@ -9,10 +9,10 @@ editor_options:
 
 Load packages.
 ```{r}
-library("ggplot2")
-library("dplyr")
+library(ggplot2)
+library(dplyr)
 library(lubridate)
-library("sf")
+library(sf)
 ```
 
 Import `SocialCorrelates.shp` containing the casualty-producing tornadoes since 1995 and estimates of socioeconomic and demographic data at the tornado level. Add `Date` and `hr` columns.
@@ -36,16 +36,16 @@ as.data.frame(Tor.sfdf) %>%
             ratio = varCas/meanCas)
 ```
 
-Given the large disparity between the mean and variance of casualties the casualty counts are over-dispersed relative to a Poisson distribution. This suggests that a negative binomial distribution may be better.
+Given the large disparity between the mean and variance of casualties the casualty counts are over-dispersed relative to a Poisson distribution. This suggests that a negative binomial distribution may be the best fit.
 
 The number of tornadoes and the number of casualties conditional on at least one mobile home. 
 ```{r}
-as.data.frame(TorSC.sfdf) %>%
+as.data.frame(Tor.sfdf) %>%
   group_by(MoblHms >= 1) %>%
-  summarise(nC = sum(cas),
+  dplyr::summarize(nC = sum(cas),
             nT = n())
 ```
-About 13% of all tornado casualties occurred in regions estimated to have at least one mobile home.
+About 13% of all tornado casualties occurred in areas estimated to have at least one mobile home.
 
 Create a new data frame with columns containing logged and scaled variables.
 ```{r}
@@ -167,12 +167,70 @@ ggplot(coefTable, aes(x = id2, y = mi)) +
   coord_flip() 
 ```
 
+### Tornado casualties and place
+
+Using the `predict()` function, look at over- and under-predictions of casualties by tornado. Remove the `yr` and `sm` variables from the data.frame, as `dplyr` will not run with the scaled variables.
+```{r}
+df.pre <- df %>%
+  dplyr::select(-one_of("yr", "smh")) %>%
+  dplyr::mutate(pre = predict(m5)[, 1],
+                differ = cas - pre)
+
+ggplot(df.pre, aes(x = cas, y = pre)) +
+  geom_point() +
+  geom_abline(slope = 1) + 
+  xlab("Observed Number of Casualties") +
+  ylab("Predicted Rate") +
+  scale_x_log10() + scale_y_log10() +
+  geom_text(data=subset(df.pre, cas >= 50),
+            aes(label = st), hjust = 1.2, vjust = .85)
+```
+
+Top 10 over-predictions of tornado casualties.
+```{r}
+OverPre <- df.pre %>%
+  arrange(round(differ))
+
+OverPre[1:10,]
+```
+
+Over-Predictions:
+1) Detroit, MI tornado
+2) Hackleburg–Phil Campbell, AL tornado
+3) Nashville, TN tornado
+4) Anderson Hills (Hunstville), AL tornado
+5) St. Louis County, MO tornado
+6) Bridge Creek–Moore, OK tornado
+7) Wichita, KS tornado
+8) Little Rock, AR tornado
+9) Louisville, KY tornado
+10) South Bend, IN tornado
+
+Top 10 under predictions
+```{r}
+UnderPre <- df.pre %>%
+  arrange(desc(differ))
+
+UnderPre[1:10,]
+```
+
+Under-Predictions
+1) Joplin, MO tornado
+2) Tuscaloosa-Birmingham, AL tornado
+3) Garland-Rowlett, TX tornado
+4) Gainesville, GA tornado
+5) Camilla, GA tornado (2000)
+6) Camilla, GA tornado (2003)
+7) Picher,OK tornado
+8) Spencer, SD tornado
+9) Madisonville, KY tornado
+10) Ringgold, GA tornado
 
 ### Assumptions
 
 ```{r}
-summary(modelFE)
-pchisq(1360, 1274, lower.tail = FALSE) # model is adequate (p-value < .05)
+summary(m1)
+pchisq(2255, 2192, lower.tail = FALSE) # model is not adequate (p-value > .05)
 ```
 
 Observed number of casualties versus predicted rate.
@@ -218,47 +276,7 @@ ggplot(df.S, aes(x = obs, y = pre)) +
 
 Look for cases of extreme difference by state.
 
-Top 10 over predictions.
-```{r}
-OverPred = df.S %>%
-  mutate(differ = round(differ)) %>%
-  arrange(differ)
 
-OverPred[1:10,]
-```
-
-Over-Predictions:
-1) Detroit, MI tornado
-2) Hackleburg–Phil Campbell, AL tornado
-3) Nashville, TN tornado
-4) Anderson Hills (Hunstville), AL tornado
-5) St. Louis County, MO tornado
-6) Bridge Creek–Moore, OK tornado
-7) Wichita, KS tornado
-8) Little Rock, AR tornado
-9) Louisville, KY tornado
-10) South Bend, IN tornado
-
-Top 10 under predictions
-```{r}
-UnderPred = df.S%>%
-  mutate(differ = round(differ)) %>%
-  arrange(desc(differ))
-
-UnderPred[1:10,]
-```
-
-Under-Predictions
-1) Joplin, MO tornado
-2) Tuscaloosa-Birmingham, AL tornado
-3) Garland-Rowlett, TX tornado
-4) Gainesville, GA tornado
-5) Camilla, GA tornado (2000)
-6) Camilla, GA tornado (2003)
-7) Picher,OK tornado
-8) Spencer, SD tornado
-9) Madisonville, KY tornado
-10) Ringgold, GA tornado
 -----------------------------------
 Camilla, GA
 
