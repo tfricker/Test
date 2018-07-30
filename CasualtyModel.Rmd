@@ -36,13 +36,13 @@ as.data.frame(Tor.sfdf) %>%
             ratio = varCas/meanCas)
 ```
 
-Given the large disparity between the mean and variance of casualties the casualty counts are over-dispersed relative to a Poisson distribution. This suggests that a negative binomial distribution may be the best fit.
+Given the large disparity between the mean and variance of casualties the casualty counts are over-dispersed relative to a Poisson distribution. This suggests that a negative binomial (or log normal) distribution may be a reasonable likelihood model.
 
 The number of tornadoes and the number of casualties conditional on at least one mobile home. 
 ```{r}
 as.data.frame(Tor.sfdf) %>%
   group_by(MoblHms >= 1) %>%
-  dplyr::summarize(nC = sum(cas),
+  summarize(nC = sum(cas),
             nT = n())
 ```
 About 13% of all tornado casualties occurred in areas estimated to have at least one mobile home.
@@ -51,25 +51,26 @@ Look at trends in annual tornado casualties and casualty producing tornadoes.
 ```{r}
 dfY <- Tor.sfdf %>%
   group_by(yr) %>%
-  dplyr::summarize(nCas = sum(cas),
-                   ncT = sum(cas > 0))
+  summarize(nCas = sum(cas),
+            ncT = n())
   
 ggplot(dfY, aes(x = yr, y = nCas)) +
-    geom_point() +
-    geom_smooth() +
+  geom_point() +
+  geom_smooth(method = lm) +
   scale_x_continuous(breaks = seq(1995, 2016, 2)) +
   xlab("Year") + ylab("Number of Tornado Casualties") +
   theme_minimal()
 
 ggplot(dfY, aes(x = yr, y = ncT)) +
-    geom_point() +
-    geom_smooth() +
-    scale_x_continuous(breaks = seq(1995, 2016, 2)) +
-    xlab("Year") + ylab("Number of Casualty-Producing Tornadoes") +
+  geom_point() +
+  geom_smooth(method = lm) +
+  scale_x_continuous(breaks = seq(1995, 2016, 2)) +
+  scale_y_continuous(limits = c(0, NA)) +
+  xlab("Year") + ylab("Number of Casualty-Producing Tornadoes") +
   theme_minimal()
 ```
 
-Look at trends in monthly tornado casualties.
+Look at trends in monthly tornado casualties. I think this is better as points +/- 2 s.e.
 ```{r}
 dfM <- Tor.sfdf %>%
   group_by(mo) %>%
@@ -82,7 +83,7 @@ ggplot(dfM, aes(x = mo, y = perTorCas)) +
   geom_point() +
   geom_smooth() +
   scale_x_continuous(breaks = seq(1,12), labels = dfM$MonthF) +
-  xlab("Month") + ylab("Average Tornado Casualties") +
+  xlab("") + ylab("Average Tornado Casualties") +
   theme_minimal()
 
 ggplot(dfM, aes(x = MonthF, y = nCas)) +
@@ -124,7 +125,20 @@ df <- as.data.frame(Tor.sfdf) %>%
          smh = scale(MoblHms),
          syr = scale(Year),
          pW = WhitPpl/TotlPpl,
-         pB = BlckPpl/TotlPpl)
+         pB = BlckPpl/TotlPpl,
+         plot_date = as.Date(format(Date, "2016-%m-%d")))
+```
+
+Year/date plot. Code from: https://buzzfeednews.github.io/2018-07-wildfire-trends/
+```{r}
+ggplot(df, aes(y = Year)) +
+  geom_hline(yintercept = seq(1995, 2016, by = 1), color = "gray", size = .05) +
+  scale_size_area(max_size = 10, breaks = c(0, 2, 4, 6), labels = c("1", "7", "55", "403"), name = "Tornado\nCasualties") +
+  scale_x_date(date_breaks = "months", date_labels = "%b") +
+  scale_y_reverse(limits = c(2016, 1995), breaks = c(2015, 2010, 2005, 2000, 1995)) +
+  xlab("") +  ylab("") +
+  geom_point(aes(size = lcas, x = plot_date), color = "#d397fc", alpha = .5) +
+  theme_minimal()
 ```
 
 
@@ -152,7 +166,7 @@ Try some mixed effects models.
 ```{r}
 library(lme4)
 
-formula4 <- lcas ~ syr + lpopD + lED + lpopD:lED + smh + (1|mo) + (1|hr)
+formula4 <- lcas ~ syr + lpopD + lED + lpopD:lED + smh + smi + (1|mo) + (1|hr)
 m4 <- lmer(formula4, data = df)
 
 summary(m4)
@@ -239,7 +253,6 @@ ggplot(coefTable, aes(x = id2, y = mi)) +
   coord_flip() 
 ```
 
-<<<<<<< HEAD
 Save the predicted values and their uncertainties as a data frame. Include additional columns from `Tor.sfdf` for identifying the case (tornado).
 ```{r}
 predValues.df <- as.data.frame(predict(m5)) %>%
@@ -253,7 +266,6 @@ predValues.sfdf <- st_sf(predValues.df,
                          geometry = Tor.sfdf)
 ```
 
-=======
 ### Tornado casualties and place
 
 Using the `predict()` function, look at over- and under-predictions of casualties by tornado. Remove the `yr` and `sm` variables from the data.frame, as `dplyr` will not run with the scaled variables.
@@ -312,7 +324,7 @@ Under-Predictions
 8) Spencer, SD tornado
 9) Madisonville, KY tornado
 10) Ringgold, GA tornado
->>>>>>> 86d56ee6d7035cca84a1264d36ed48b8246a5af4
+
 
 ### Assumptions
 
