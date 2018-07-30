@@ -137,7 +137,7 @@ ggplot(df, aes(y = Year)) +
   scale_x_date(date_breaks = "months", date_labels = "%b") +
   scale_y_reverse(limits = c(2016, 1995), breaks = c(2015, 2010, 2005, 2000, 1995)) +
   xlab("") +  ylab("") +
-  geom_point(aes(size = lcas, x = plot_date), color = "purple", alpha = .8) +
+  geom_point(aes(size = lcas, x = plot_date), color = "#d397fc", alpha = .5) +
   theme_minimal()
 ```
 
