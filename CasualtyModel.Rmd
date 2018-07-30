@@ -133,7 +133,7 @@ Year/date plot. Code from: https://buzzfeednews.github.io/2018-07-wildfire-trend
 ```{r}
 ggplot(df, aes(y = Year)) +
   geom_hline(yintercept = seq(1995, 2016, by = 1), color = "gray", size = .05) +
-  scale_size_area(max_size = 10, guide = FALSE) +
+  scale_size_area(max_size = 10, breaks = c(0, 2, 4, 6), labels = c("1", "7", "55", "403"), name = "Tornado\nCasualties") +
   scale_x_date(date_breaks = "months", date_labels = "%b") +
   scale_y_reverse(limits = c(2016, 1995), breaks = c(2015, 2010, 2005, 2000, 1995)) +
   xlab("") +  ylab("") +
