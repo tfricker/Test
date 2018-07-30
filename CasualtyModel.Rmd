@@ -125,7 +125,20 @@ df <- as.data.frame(Tor.sfdf) %>%
          smh = scale(MoblHms),
          syr = scale(Year),
          pW = WhitPpl/TotlPpl,
-         pB = BlckPpl/TotlPpl)
+         pB = BlckPpl/TotlPpl,
+         plot_date = as.Date(format(Date, "2016-%m-%d")))
+```
+
+Year/date plot. Code from: https://buzzfeednews.github.io/2018-07-wildfire-trends/
+```{r}
+ggplot(df, aes(y = Year)) +
+  geom_hline(yintercept = seq(1995, 2016, by = 1), color = "gray", size = .05) +
+  scale_size_area(max_size = 10, guide = FALSE) +
+  scale_x_date(date_breaks = "months", date_labels = "%b") +
+  scale_y_reverse(limits = c(2016, 1995), breaks = c(2015, 2010, 2005, 2000, 1995)) +
+  xlab("") +  ylab("") +
+  geom_point(aes(size = lcas, x = plot_date), color = "purple", alpha = .8) +
+  theme_minimal()
 ```
 
 
