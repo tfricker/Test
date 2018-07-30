@@ -53,21 +53,22 @@ df <- as.data.frame(Tor.sfdf) %>%
   mutate(lpopD = log(popD2),
          lED = log(ED),
          lcas = log(cas),
-         lmi = log(MdnIncm),
-         lmh = log(MoblHms),
+         smi = scale(MdnIncm),
          smh = scale(MoblHms),
-         yr = scale(Year),
+         syr = scale(Year),
          pW = WhitPpl/TotlPpl,
          pB = BlckPpl/TotlPpl)
 ```
 
 ### Models
 
-Try some fixed effects only models.
+Here we extend the model of Elsner et al. (2018) to include a trend term to account for the steady improvement in warning residents that results in a tendency toward fewer casualties. Based on previous research showing a greater risk of casualties for residents in mobile homes we include a term to account for the number of mobile homes estimated within the path.
+
+Try two fixed effects models.
 ```{r}
 library(MASS)
-formula1 <- cas ~ yr + lpopD + lED + lpopD:lED + smh
-formula2 <- lcas ~ yr + lpopD + lED + lpopD:lED + smh
+formula1 <- cas ~ syr + lpopD + lED + lpopD:lED + smh
+formula2 <- lcas ~ syr + lpopD + lED + lpopD:lED + smh
 
 m1 <- glm.nb(formula1, link = log, data = df)
 m2 <- lm(formula2, data = df)
@@ -83,7 +84,7 @@ Try some mixed effects models.
 ```{r}
 library(lme4)
 
-formula4 <- lcas ~ yr + lpopD + lED + lpopD:lED + smh + (1|mo) + (1|hr)
+formula4 <- lcas ~ syr + lpopD + lED + lpopD:lED + smh + (1|mo) + (1|hr)
 m4 <- lmer(formula4, data = df)
 
 summary(m4)
@@ -94,7 +95,7 @@ Work with the **brms** package for mixed effects model. Set `inits` to `"0"` rat
 ```{r}
 library(brms)
 
-formula5 <- cas | trunc(lb = 1) ~ yr + lpopD + lED + lpopD:lED + smh + (1|hr) + (1|mo)
+formula5 <- cas | trunc(lb = 1) ~ syr + lpopD + lED + lpopD:lED + smh + (1|hr) + (1|mo)
 get_prior(formula5, data = df, family = lognormal)
 
 m5 <- brm(formula = formula5,
@@ -123,23 +124,26 @@ df.out <- reshape2::melt(df.yrep) %>%
   group_by(variable) %>%
   summarize(mx = max(value),
             mn = exp(mean(log(value))))
+
+quantile(df.out$mn, probs = c(.25, .75), na.rm = TRUE)
+quantile(df.out$mx, probs = c(.25, .75), na.rm = TRUE)
 ```
 
 Look at the posterior predictive checks.
 ```{r}
 ggplot(df.out, aes(mn)) + 
-  geom_histogram(fill = "red", bins = 15, color = "white") +
+  geom_density(fill = "red", color = "red") +
   geom_vline(xintercept = exp(mean(log(df$cas))), color = "black", size = 1) +
-  scale_x_log10() +
-  ylab("Posterior Frequency") +
+  scale_x_log10(breaks = c(1, 10, 100, 1000), limits = c(1, 1000)) +
+  ylab("Posterior Density") +
   xlab("Average Per-Tornado Casualty Rate") +
   theme_minimal()
 
 ggplot(df.out, aes(mx)) + 
-  geom_histogram(fill = "red", bins = 15, color = "white") +
+  geom_density(fill = "red", color = "red") +
   geom_vline(xintercept = max(df$cas), color = "black", size = 1) +
   scale_x_log10(breaks = c(100, 1000, 10000, 100000), labels = c(100, 1000, 10000, "100,000")) + 
-  ylab("Posterior Frequency") +
+  ylab("Posterior Density") +
   xlab("Maximum Per-Tornado Casualty Rate") +
   theme_minimal()
 ```
@@ -165,6 +169,19 @@ ggplot(coefTable, aes(x = id2, y = mi)) +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()) +
   coord_flip() 
+```
+
+Save the predicted values and their uncertainties as a data frame. Include additional columns from `Tor.sfdf` for identifying the case (tornado).
+```{r}
+predValues.df <- as.data.frame(predict(m5)) %>%
+  mutate(Actual = df$cas, 
+         Diff = Actual - Estimate,
+         om = Tor.sfdf$om, 
+         Date = Tor.sfdf$Date, 
+         st = Tor.sfdf$st)
+
+predValues.sfdf <- st_sf(predValues.df, 
+                         geometry = Tor.sfdf)
 ```
 
 
