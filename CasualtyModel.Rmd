@@ -166,7 +166,7 @@ Try some mixed effects models.
 ```{r}
 library(lme4)
 
-formula4 <- lcas ~ syr + lpopD + lED + lpopD:lED + smh + (1|mo) + (1|hr)
+formula4 <- lcas ~ syr + lpopD + lED + lpopD:lED + smh + smi + (1|mo) + (1|hr)
 m4 <- lmer(formula4, data = df)
 
 summary(m4)
@@ -324,7 +324,7 @@ Under-Predictions
 8) Spencer, SD tornado
 9) Madisonville, KY tornado
 10) Ringgold, GA tornado
->>>>>>> 86d56ee6d7035cca84a1264d36ed48b8246a5af4
+
 
 ### Assumptions
 
