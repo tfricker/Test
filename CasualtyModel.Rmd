@@ -49,32 +49,69 @@ About 13% of all tornado casualties occurred in areas estimated to have at least
 
 Look at trends in annual tornado casualties and casualty producing tornadoes.
 ```{r}
-dfA <- Tor.sfdf %>%
+dfY <- Tor.sfdf %>%
   group_by(yr) %>%
   dplyr::summarize(nCas = sum(cas),
                    ncT = sum(cas > 0))
   
-ggplot(dfA, aes(x = yr, y = nCas)) +
-    geom_line() +
+ggplot(dfY, aes(x = yr, y = nCas)) +
+    geom_point() +
     geom_smooth() +
   scale_x_continuous(breaks = seq(1995, 2016, 2)) +
-  xlab("Year") + ylab("Number of Tornado Casualties")
+  xlab("Year") + ylab("Number of Tornado Casualties") +
+  theme_minimal()
 
-ggplot(dfA, aes(x = yr, y = ncT)) +
-    geom_line() +
+ggplot(dfY, aes(x = yr, y = ncT)) +
+    geom_point() +
     geom_smooth() +
     scale_x_continuous(breaks = seq(1995, 2016, 2)) +
-    xlab("Year") + ylab("Number of Casualty-Producing Tornadoes")
+    xlab("Year") + ylab("Number of Casualty-Producing Tornadoes") +
+  theme_minimal()
+```
 
-dfB <- Tor.sfdf %>%
+Look at trends in monthly tornado casualties.
+```{r}
+dfM <- Tor.sfdf %>%
   group_by(mo) %>%
-  summarize(nCas = sum(cas)) %>%
+  summarize(nT = n(),
+            nCas = sum(cas),
+            perTorCas = nCas/nT) %>%
   mutate(MonthF = factor(month.abb[mo], levels = month.abb))
 
-ggplot(dfB, aes(x = MonthF, y = nCas)) +
+ggplot(dfM, aes(x = mo, y = perTorCas)) +
+  geom_point() +
+  geom_smooth() +
+  scale_x_continuous(breaks = seq(1,12), labels = dfM$MonthF) +
+  xlab("Month") + ylab("Average Tornado Casualties") +
+  theme_minimal()
+
+ggplot(dfM, aes(x = MonthF, y = nCas)) +
   geom_bar(stat = "identity") +
   scale_y_continuous(limits = c(0, 10000)) +
-  xlab("") + ylab("Number of Tornado Casualties")
+  xlab("") + ylab("Number of Tornado Casualties") +
+  theme_minimal()
+```
+
+Look at trends in hourly tornado casualties.
+```{r}
+dfH <- Tor.sfdf %>%
+  group_by(hr) %>%
+  summarize(nT = n(),
+            nCas = sum(cas),
+            perTorCas = nCas/nT)
+
+ggplot(dfH, aes(x = hr, y = perTorCas)) +
+  geom_point() +
+  geom_smooth() +
+  xlab("Hour") + ylab("Average Tornado Casualties") +
+  theme_minimal()
+
+ggplot(dfH, aes(x = hr, y = nCas)) +
+  geom_bar(stat = "identity") +
+  scale_x_continuous(breaks = seq(0, 24, 4), labels = c("12:00AM", "4:00AM", "8:00AM", "12:00PM", "4:00PM", "8:00PM", "")) +
+  scale_y_continuous(limits = c(0, 4500)) +
+  xlab("") + ylab("Number of Tornado Casualties") +
+  theme_minimal()
 ```
 
 Create a new data frame with columns containing logged and scaled variables.
