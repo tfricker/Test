@@ -137,10 +137,21 @@ ggplot(df, aes(y = Year)) +
   scale_x_date(date_breaks = "months", date_labels = "%b") +
   scale_y_reverse(limits = c(2016, 1995), breaks = c(2015, 2010, 2005, 2000, 1995)) +
   xlab("") +  ylab("") +
-  geom_point(aes(size = lcas, x = plot_date), color = "#d397fc", alpha = .5) +
+  geom_point(aes(size = lcas, x = plot_date), color = "purple", alpha = .5) +
   theme_minimal()
 ```
 
+Year/hour plot.
+```{r}
+ggplot(df, aes(y = Year)) +
+  geom_hline(yintercept = seq(1995, 2016, by = 1), color = "gray", size = .05) +
+  scale_size_area(max_size = 10, breaks = c(0, 2, 4, 6), labels = c("1", "7", "55", "403"), name = "Tornado\nCasualties") +
+  scale_x_continuous(breaks = seq(0, 24, 4), labels = c("12:00AM", "4:00AM", "8:00AM", "12:00PM", "4:00PM", "8:00PM", "")) +
+  scale_y_reverse(limits = c(2016, 1995), breaks = c(2015, 2010, 2005, 2000, 1995)) +
+  xlab("") +  ylab("") +
+  geom_point(aes(size = lcas, x = hr), color = "purple", alpha = .5) +
+  theme_minimal()
+```
 
 ### Models
 
@@ -257,13 +268,26 @@ Save the predicted values and their uncertainties as a data frame. Include addit
 ```{r}
 predValues.df <- as.data.frame(predict(m5)) %>%
   mutate(Actual = df$cas, 
-         Diff = Actual - Estimate,
-         om = Tor.sfdf$om, 
+         Diff = round(Actual - Estimate),
+         om = Tor.sfdf$om,
+         Year = Tor.sfdf$Year,
          Date = Tor.sfdf$Date, 
          st = Tor.sfdf$st)
 
 predValues.sfdf <- st_sf(predValues.df, 
-                         geometry = Tor.sfdf)
+                         geometry = Tor.sfdf$geometry)
+```
+
+Over/Under-prediction plot. Code from: https://buzzfeednews.github.io/2018-07-wildfire-trends/
+```{r}
+ggplot(predValues.sfdf, aes(y = Year)) +
+  geom_hline(yintercept = seq(1995, 2016, by = 1), color = "gray", size = .05) +
+  #scale_size_area(max_size = 10, breaks = c(-10000, -7500, -5000, -2500, 0, 250, 500, 750, 1000, 1250), labels = c("-10,000", "-7500", "-5000", "-2500", "0", "250", "500", "750", "1000", "1250"), name = "Tornado\nCasualties") +
+  #scale_x_date(date_breaks = "months", date_labels = "%b") +
+  scale_y_reverse(limits = c(2016, 1995), breaks = c(2015, 2010, 2005, 2000, 1995)) +
+  xlab("") +  ylab("") +
+  geom_point(aes(size = Diff, x = Diff), color = "#d397fc", alpha = .5) +
+  theme_minimal()
 ```
 
 ### Tornado casualties and place
