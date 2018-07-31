@@ -3,7 +3,7 @@ title: "Casualty Risk Model"
 author: "Tyler Fricker"
 date: "3/27/2018"
 output: html_notebook
-editor_options: 
+editor_options:
   chunk_output_type: console
 ---
 
