@@ -45,7 +45,7 @@ as.data.frame(Tor.sfdf) %>%
   summarize(nC = sum(cas),
             nT = n())
 ```
-About 13% of all tornado casualties occurred in areas estimated to have at least one mobile home.
+About 13% of all tornado casualties occurred in areas estimated to have at least one mobile home.c
 
 Look at trends in annual tornado casualties and casualty producing tornadoes.
 ```{r}
@@ -77,11 +77,12 @@ dfM <- Tor.sfdf %>%
   summarize(nT = n(),
             nCas = sum(cas),
             perTorCas = nCas/nT) %>%
-  mutate(MonthF = factor(month.abb[mo], levels = month.abb))
+  mutate(MonthF = factor(month.abb[mo], levels = month.abb),
+         ci = qt(0.975, df=nT-1) * sd(perTorCas)/sqrt(nT))
 
 ggplot(dfM, aes(x = mo, y = perTorCas)) +
   geom_point() +
-  geom_smooth() +
+  geom_errorbar(aes(ymin = perTorCas - ci, ymax = perTorCas + ci)) +
   scale_x_continuous(breaks = seq(1,12), labels = dfM$MonthF) +
   xlab("") + ylab("Average Tornado Casualties") +
   theme_minimal()
@@ -99,11 +100,12 @@ dfH <- Tor.sfdf %>%
   group_by(hr) %>%
   summarize(nT = n(),
             nCas = sum(cas),
-            perTorCas = nCas/nT)
+            perTorCas = nCas/nT) %>%
+  mutate(ci = qt(0.975, df=nT-1) * sd(perTorCas)/sqrt(nT))
 
 ggplot(dfH, aes(x = hr, y = perTorCas)) +
   geom_point() +
-  geom_smooth() +
+  geom_errorbar(aes(ymin = perTorCas - ci, ymax = perTorCas + ci)) +
   xlab("Hour") + ylab("Average Tornado Casualties") +
   theme_minimal()
 
