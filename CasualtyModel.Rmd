@@ -217,21 +217,21 @@ post5 <- brm(formula = formula5,
                        set_prior("student_t(3, 3, 10)", class = "Intercept"),
                        set_prior("student_t(3, 0, 10)", class = "sd"),
                        set_prior("student_t(3, 0, 10)", class = "sigma")),
-              inits = "0",
-              control = list(adapt_delta = .8))
+              inits = "0", seed = 0112,
+              control = list(adapt_delta = .95))
 
-summary(m5)
+summary(post5)
 ```
 
 Correlation between estimated and actual casualties.
 ```{r}
-cor(predict(prior5)[, 1], df$cas)
+cor(predict(post5)[, 1], df$cas)
 ```
 
 The `posterior_predict()` function generates 3000 samples of cas. Compare the distribution of cas statistics (mean, max) with actual cas.
 
 ```{r}
-yrep <- posterior_predict(m5)
+yrep <- posterior_predict(post5)
 df.yrep <- as.data.frame(yrep)
 df.out <- reshape2::melt(df.yrep) %>%
   group_by(variable) %>%
@@ -262,7 +262,7 @@ ggplot(df.out, aes(mx)) +
 ```
 
 ```{r}
-coefTable <- as.data.frame(summary(m5)$fixed) %>%
+coefTable <- as.data.frame(summary(post5)$fixed) %>%
   mutate(lb = `l-95% CI`,
          ub = `u-95% CI`,
          mi = `Estimate`,
@@ -286,9 +286,10 @@ ggplot(coefTable, aes(x = id2, y = mi)) +
 
 Save the predicted values and their uncertainties as a data frame. Include additional columns from `Tor.sfdf` for identifying the case (tornado).
 ```{r}
-predValues.df <- as.data.frame(predict(m5)) %>%
+predValues.df <- as.data.frame(predict(post5)) %>%
   mutate(Actual = df$cas, 
-         Diff = round(Actual - Estimate),
+         Diff = Actual - Estimate,
+         Sign = Diff > 0,
          om = Tor.sfdf$om,
          Year = Tor.sfdf$Year,
          Date = Tor.sfdf$Date, 
@@ -298,15 +299,20 @@ predValues.sfdf <- st_sf(predValues.df,
                          geometry = Tor.sfdf$geometry)
 ```
 
-Over/Under-prediction plot. Code from: https://buzzfeednews.github.io/2018-07-wildfire-trends/
+Over/Under-prediction plot.
 ```{r}
-ggplot(predValues.sfdf, aes(y = Year)) +
+library(ggridges)
+ggplot(predValues.df[abs(predValues.df$Diff) < 100, ], aes(x = Diff, y = Year, group = Year, height = ..density..)) +
+     geom_density_ridges(scale = 3, color = "white") + 
+     scale_y_reverse(breaks = seq(1995, 2015, 5)) +
+     ylab("") + xlab("Actual - Predicted")
+
+ggplot(predValues.df, aes(y = Year)) +
   geom_hline(yintercept = seq(1995, 2016, by = 1), color = "gray", size = .05) +
-  #scale_size_area(max_size = 10, breaks = c(-10000, -7500, -5000, -2500, 0, 250, 500, 750, 1000, 1250), labels = c("-10,000", "-7500", "-5000", "-2500", "0", "250", "500", "750", "1000", "1250"), name = "Tornado\nCasualties") +
-  #scale_x_date(date_breaks = "months", date_labels = "%b") +
   scale_y_reverse(limits = c(2016, 1995), breaks = c(2015, 2010, 2005, 2000, 1995)) +
   xlab("") +  ylab("") +
-  geom_point(aes(size = Diff, x = Diff), color = "#d397fc", alpha = .5) +
+  geom_point(aes(y = Year, x = Diff), data = predValues.df[predValues.df$Sign, ], color = 'green') +
+  geom_point(aes(y = Year, x = Diff), data = predValues.df[!predValues.df$Sign, ], color = 'purple') +
   theme_minimal()
 ```
 
