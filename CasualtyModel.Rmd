@@ -293,13 +293,15 @@ predValues.df <- as.data.frame(predict(post5)) %>%
          om = Tor.sfdf$om,
          Year = Tor.sfdf$Year,
          Date = Tor.sfdf$Date,
-         st = Tor.sfdf$st)
+         st = Tor.sfdf$st,
+         slat = Tor.sfdf$slat,
+         slon = Tor.sfdf$slon)
 
 predValues.sfdf <- st_sf(predValues.df, 
                          geometry = Tor.sfdf$geometry)
 ```
 
-Over/Under-prediction plot.
+Over/Under prediction plot.
 ```{r}
 library(ggridges)
 ggplot(predValues.df[abs(predValues.df$Diff) < 100, ], aes(x = Diff, y = Year, group = Year, height = ..density..)) +
@@ -325,6 +327,30 @@ ggplot(predValues.df, aes(x = Actual, y = Estimate)) +
             aes(label = st), hjust = 1, vjust = .5) +
   theme_minimal()
 ```
+
+Over/under prediction map.
+```{r}
+library(USAboundaries)
+sts <- state.name[!state.name %in% c("Alaska", "Hawaii")]
+stateBorders <- us_states(states = sts)
+
+
+p1 <- ggplot() +
+  geom_sf(data = stateBorders) +
+  geom_point(data = predValues.df[predValues.df$Diff >= 0, ], aes(x = slon, y = slat, size = Diff), color = "green") +
+  xlab("") + ylab("") +
+  theme_minimal()
+
+p2 <- ggplot() +
+  geom_sf(data = stateBorders) +
+  geom_point(data = predValues.df[predValues.df$Diff < 0, ], aes(x = slon, y = slat, size = abs(Diff)), color = "purple") +
+  xlab("") + ylab("") +
+  theme_minimal()
+
+library(patchwork)
+p1/p2
+```
+
 
 ### Tornado casualties and place
 
