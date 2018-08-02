@@ -189,28 +189,43 @@ summary(m4)
 cor(df$cas, exp(predict(m4)))
 ```
 
-Work with the **brms** package for mixed effects model. Set `inits` to `"0"` rather than the default `"random"`.
+Work with the **brms** package for mixed effects model. First sample from the priors. Set `inits` to `"0"` rather than the default `"random"`.
 ```{r}
 library(brms)
 
-formula5 <- cas | trunc(lb = 1) ~ syr + lpopD + lED + lpopD:lED + smh + (1|hr) + (1|mo)
+formula5 <- cas | trunc(lb = 1, ub = 500000) ~ syr + lpopD + lED + lpopD:lED + smh + (1|hr) + (1|mo)
 get_prior(formula5, data = df, family = lognormal)
 
-m5 <- brm(formula = formula5,
-          data = df, family = lognormal,
-          prior = c(set_prior("normal(0,5)", class = "b"),
+# Sample from the priors
+prior5 <- brm(formula = formula5,
+              data = df, family = lognormal,
+              prior = c(set_prior("normal(0,5)", class = "b"),
                     set_prior("student_t(3, 3, 10)", class = "Intercept"),
                     set_prior("student_t(3, 0, 10)", class = "sd"),
                     set_prior("student_t(3, 0, 10)", class = "sigma")),
-          warmup = 500, iter = 2000, chains = 2, inits = "0",
+          sample_prior = "only", seed = 0112,
           control = list(adapt_delta = .8))
+
+out <- predict(prior5, probs = c(0, 1))
+
+
+# Fit the model
+
+post5 <- brm(formula = formula5,
+             data = df, family = lognormal,
+             prior = c(set_prior("normal(0,5)", class = "b"),
+                       set_prior("student_t(3, 3, 10)", class = "Intercept"),
+                       set_prior("student_t(3, 0, 10)", class = "sd"),
+                       set_prior("student_t(3, 0, 10)", class = "sigma")),
+              inits = "0",
+              control = list(adapt_delta = .8))
 
 summary(m5)
 ```
 
 Correlation between estimated and actual casualties.
 ```{r}
-cor(predict(m5)[, 1], df$cas)
+cor(predict(prior5)[, 1], df$cas)
 ```
 
 The `posterior_predict()` function generates 3000 samples of cas. Compare the distribution of cas statistics (mean, max) with actual cas.
