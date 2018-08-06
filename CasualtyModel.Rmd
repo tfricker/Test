@@ -194,7 +194,7 @@ Work with the **brms** package for mixed effects model. First sample from the pr
 ```{r}
 library(brms)
 
-formula5 <- cas | trunc(lb = 1, ub = 500000) ~ syr + lpopD + lED + lpopD:lED + smh + (1|hr) + (1|mo)
+formula5 <- cas | trunc(lb = 1) ~ syr + lpopD + lED + lpopD:lED + smh + (1|hr) + (1|mo)
 get_prior(formula5, data = df, family = lognormal)
 
 # Sample from the priors
@@ -219,7 +219,7 @@ post5 <- brm(formula = formula5,
                        set_prior("student_t(3, 0, 10)", class = "sd"),
                        set_prior("student_t(3, 0, 10)", class = "sigma")),
               inits = "0", seed = 0112,
-              control = list(adapt_delta = .95))
+              control = list(adapt_delta = .8))
 
 summary(post5)
 ```
@@ -236,8 +236,8 @@ yrep <- posterior_predict(post5)
 df.yrep <- as.data.frame(yrep)
 df.out <- reshape2::melt(df.yrep) %>%
   group_by(variable) %>%
-  summarize(mx = max(value),
-            mn = exp(mean(log(value))))
+  summarize(mx = max(value, na.rm = TRUE),
+            mn = exp(mean(log(value), na.rm = TRUE)))
 
 quantile(df.out$mn, probs = c(.25, .75), na.rm = TRUE)
 quantile(df.out$mx, probs = c(.25, .75), na.rm = TRUE)
@@ -305,7 +305,8 @@ predValues.sfdf <- st_sf(predValues.df,
 Over/Under prediction plot.
 ```{r}
 library(ggridges)
-ggplot(predValues.df[abs(predValues.df$Diff) < 100, ], aes(x = Diff, y = Year, group = Year, height = ..density..)) +
+ggplot(predValues.df[abs(predValues.df$Diff) < 100, ], 
+       aes(x = Diff, y = Year, group = Year, height = ..density..)) +
      geom_density_ridges(scale = 3, color = "white") + 
      scale_y_reverse(breaks = seq(1995, 2015, 5)) +
      ylab("") + xlab("Actual - Predicted")
