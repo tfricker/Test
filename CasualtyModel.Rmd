@@ -3,7 +3,7 @@ title: "Casualty Risk Model"
 author: "Tyler Fricker"
 date: "3/27/2018"
 output: html_notebook
-editor_options: 
+editor_options:
   chunk_output_type: console
 ---
 
@@ -15,7 +15,7 @@ library(lubridate)
 library(sf)
 ```
 
-Import `SocialCorrelates.shp` containing the casualty-producing tornadoes since 1995 and estimates of socioeconomic and demographic data at the tornado level. Add `Date` and `hr` columns.
+Import `SocialCorrelates.shp` containing the casualty-producing tornadoes since 1995 and estimates of socioeconomic and demographic data at the tornado level. Add `Date` and `hr` columns to the data frame.
 ```{r}
 unzip("SocialCorrelates.zip")
 Tor.sfdf <- st_read(dsn = "SocialCorrelates", 
@@ -45,7 +45,7 @@ as.data.frame(Tor.sfdf) %>%
   summarize(nC = sum(cas),
             nT = n())
 ```
-About 13% of all tornado casualties occurred in areas estimated to have at least one mobile home.
+About 13% of all tornado casualties occurred in areas estimated to have at least one mobile home.c
 
 Look at trends in annual tornado casualties and casualty producing tornadoes.
 ```{r}
@@ -77,13 +77,15 @@ dfM <- Tor.sfdf %>%
   summarize(nT = n(),
             nCas = sum(cas),
             perTorCas = nCas/nT) %>%
-  mutate(MonthF = factor(month.abb[mo], levels = month.abb))
+  mutate(MonthF = factor(month.abb[mo], levels = month.abb),
+         ci = qt(0.975, df=nT-1) * sd(perTorCas)/sqrt(nT))
 
 ggplot(dfM, aes(x = mo, y = perTorCas)) +
   geom_point() +
-  geom_smooth() +
+  geom_errorbar(aes(ymin = perTorCas - ci, ymax = perTorCas + ci)) +
   scale_x_continuous(breaks = seq(1,12), labels = dfM$MonthF) +
-  xlab("") + ylab("Average Tornado Casualties") +
+  scale_y_continuous(limits = c(0, NA)) +
+  xlab("") + ylab("Average Per-Tornado Casualties") +
   theme_minimal()
 
 ggplot(dfM, aes(x = MonthF, y = nCas)) +
@@ -99,11 +101,14 @@ dfH <- Tor.sfdf %>%
   group_by(hr) %>%
   summarize(nT = n(),
             nCas = sum(cas),
-            perTorCas = nCas/nT)
+            perTorCas = nCas/nT) %>%
+  mutate(ci = qt(0.975, df=nT-1) * sd(perTorCas)/sqrt(nT))
 
 ggplot(dfH, aes(x = hr, y = perTorCas)) +
   geom_point() +
-  geom_smooth() +
+  geom_errorbar(aes(ymin = perTorCas - ci, ymax = perTorCas + ci)) +
+  scale_x_continuous(breaks = seq(0, 24, 4), labels = c("12:00AM", "4:00AM", "8:00AM", "12:00PM", "4:00PM", "8:00PM", "")) +
+  scale_y_continuous(limits = c(0, NA)) +
   xlab("Hour") + ylab("Average Tornado Casualties") +
   theme_minimal()
 
@@ -138,10 +143,21 @@ ggplot(df, aes(y = Year)) +
   scale_x_date(date_breaks = "months", date_labels = "%b") +
   scale_y_reverse(limits = c(2016, 1995), breaks = c(2015, 2010, 2005, 2000, 1995)) +
   xlab("") +  ylab("") +
-  geom_point(aes(size = lcas, x = plot_date), color = "#d397fc", alpha = .5) +
+  geom_point(aes(size = lcas, x = plot_date), color = "purple", alpha = .5) +
   theme_minimal()
 ```
 
+Year/hour plot.
+```{r}
+ggplot(df, aes(y = Year)) +
+  geom_hline(yintercept = seq(1995, 2016, by = 1), color = "gray", size = .05) +
+  scale_size_area(max_size = 10, breaks = c(0, 2, 4, 6), labels = c("1", "7", "55", "403"), name = "Tornado\nCasualties") +
+  scale_x_continuous(breaks = seq(0, 24, 4), labels = c("12:00AM", "4:00AM", "8:00AM", "12:00PM", "4:00PM", "8:00PM", "")) +
+  scale_y_reverse(limits = c(2016, 1995), breaks = c(2015, 2010, 2005, 2000, 1995)) +
+  xlab("") +  ylab("") +
+  geom_point(aes(size = lcas, x = hr), color = "purple", alpha = .5) +
+  theme_minimal()
+```
 
 ### Models
 
@@ -174,34 +190,49 @@ summary(m4)
 cor(df$cas, exp(predict(m4)))
 ```
 
-Work with the **brms** package for mixed effects model. Set `inits` to `"0"` rather than the default `"random"`.
+Work with the **brms** package for mixed effects model. First sample from the priors. Set `inits` to `"0"` rather than the default `"random"`.
 ```{r}
 library(brms)
 
-formula5 <- cas | trunc(lb = 1) ~ syr + lpopD + lED + lpopD:lED + smh + (1|hr) + (1|mo)
+formula5 <- cas | trunc(lb = 1, ub = 500000) ~ syr + lpopD + lED + lpopD:lED + smh + (1|hr) + (1|mo)
 get_prior(formula5, data = df, family = lognormal)
 
-m5 <- brm(formula = formula5,
-          data = df, family = lognormal,
-          prior = c(set_prior("normal(0,5)", class = "b"),
+# Sample from the priors
+prior5 <- brm(formula = formula5,
+              data = df, family = lognormal,
+              prior = c(set_prior("normal(0,5)", class = "b"),
                     set_prior("student_t(3, 3, 10)", class = "Intercept"),
                     set_prior("student_t(3, 0, 10)", class = "sd"),
                     set_prior("student_t(3, 0, 10)", class = "sigma")),
-          warmup = 500, iter = 2000, chains = 2, inits = "0",
+          sample_prior = "only", seed = 0112,
           control = list(adapt_delta = .8))
 
-summary(m5)
+out <- predict(prior5, probs = c(0, 1))
+
+
+# Fit the model
+
+post5 <- brm(formula = formula5,
+             data = df, family = lognormal,
+             prior = c(set_prior("normal(0,5)", class = "b"),
+                       set_prior("student_t(3, 3, 10)", class = "Intercept"),
+                       set_prior("student_t(3, 0, 10)", class = "sd"),
+                       set_prior("student_t(3, 0, 10)", class = "sigma")),
+              inits = "0", seed = 0112,
+              control = list(adapt_delta = .95))
+
+summary(post5)
 ```
 
 Correlation between estimated and actual casualties.
 ```{r}
-cor(predict(m5)[, 1], df$cas)
+cor(predict(post5)[, 1], df$cas)
 ```
 
 The `posterior_predict()` function generates 3000 samples of cas. Compare the distribution of cas statistics (mean, max) with actual cas.
 
 ```{r}
-yrep <- posterior_predict(m5)
+yrep <- posterior_predict(post5)
 df.yrep <- as.data.frame(yrep)
 df.out <- reshape2::melt(df.yrep) %>%
   group_by(variable) %>%
@@ -232,7 +263,7 @@ ggplot(df.out, aes(mx)) +
 ```
 
 ```{r}
-coefTable <- as.data.frame(summary(m5)$fixed) %>%
+coefTable <- as.data.frame(summary(post5)$fixed) %>%
   mutate(lb = `l-95% CI`,
          ub = `u-95% CI`,
          mi = `Estimate`,
@@ -256,42 +287,77 @@ ggplot(coefTable, aes(x = id2, y = mi)) +
 
 Save the predicted values and their uncertainties as a data frame. Include additional columns from `Tor.sfdf` for identifying the case (tornado).
 ```{r}
-predValues.df <- as.data.frame(predict(m5)) %>%
-  mutate(Actual = df$cas, 
+predValues.df <- as.data.frame(predict(post5)) %>%
+  mutate(Actual = df$cas,
          Diff = Actual - Estimate,
-         om = Tor.sfdf$om, 
-         Date = Tor.sfdf$Date, 
-         st = Tor.sfdf$st)
+         Sign = Diff > 0,
+         om = Tor.sfdf$om,
+         Year = Tor.sfdf$Year,
+         Date = Tor.sfdf$Date,
+         st = Tor.sfdf$st,
+         slat = Tor.sfdf$slat,
+         slon = Tor.sfdf$slon)
 
 predValues.sfdf <- st_sf(predValues.df, 
-                         geometry = Tor.sfdf)
+                         geometry = Tor.sfdf$geometry)
 ```
 
-### Tornado casualties and place
-
-Using the `predict()` function, look at over- and under-predictions of casualties by tornado. Remove the `yr` and `sm` variables from the data.frame, as `dplyr` will not run with the scaled variables.
+Over/Under prediction plot.
 ```{r}
-df.pre <- df %>%
-  dplyr::select(-one_of("yr", "smh")) %>%
-  dplyr::mutate(pre = predict(m5)[, 1],
-                differ = cas - pre)
+library(ggridges)
+ggplot(predValues.df[abs(predValues.df$Diff) < 100, ], aes(x = Diff, y = Year, group = Year, height = ..density..)) +
+     geom_density_ridges(scale = 3, color = "white") + 
+     scale_y_reverse(breaks = seq(1995, 2015, 5)) +
+     ylab("") + xlab("Actual - Predicted")
 
-ggplot(df.pre, aes(x = cas, y = pre)) +
+ggplot(predValues.df, aes(y = Year)) +
+  geom_hline(yintercept = seq(1995, 2016, by = 1), color = "gray", size = .05) +
+  scale_y_reverse(limits = c(2016, 1995), breaks = c(2015, 2010, 2005, 2000, 1995)) +
+  xlab("") +  ylab("") +
+  geom_point(aes(y = Year, x = Diff), data = predValues.df[predValues.df$Sign, ], color = 'green') +
+  geom_point(aes(y = Year, x = Diff), data = predValues.df[!predValues.df$Sign, ], color = 'purple') +
+  theme_minimal()
+
+ggplot(predValues.df, aes(x = Actual, y = Estimate)) +
   geom_point() +
   geom_abline(slope = 1) + 
   xlab("Observed Number of Casualties") +
   ylab("Predicted Rate") +
   scale_x_log10() + scale_y_log10() +
-  geom_text(data=subset(df.pre, cas >= 50),
-            aes(label = st), hjust = 1.2, vjust = .85)
+  geom_text(data = subset(predValues.df, Actual >= 30),
+            aes(label = st), hjust = 1, vjust = .5) +
+  theme_minimal()
 ```
+
+Over/under prediction map.
+```{r}
+library(USAboundaries)
+sts <- state.name[!state.name %in% c("Alaska", "Hawaii")]
+stateBorders <- us_states(states = sts)
+
+
+p1 <- ggplot() +
+  geom_sf(data = stateBorders) +
+  geom_point(data = predValues.df[predValues.df$Diff >= 0, ], aes(x = slon, y = slat, size = Diff), color = "green") +
+  xlab("") + ylab("") +
+  theme_minimal()
+
+p2 <- ggplot() +
+  geom_sf(data = stateBorders) +
+  geom_point(data = predValues.df[predValues.df$Diff < 0, ], aes(x = slon, y = slat, size = abs(Diff)), color = "purple") +
+  xlab("") + ylab("") +
+  theme_minimal()
+
+library(patchwork)
+p1/p2
+```
+
+
+### Tornado casualties and place
 
 Top 10 over-predictions of tornado casualties.
 ```{r}
-OverPre <- df.pre %>%
-  arrange(round(differ))
-
-OverPre[1:10,]
+arrange(predValues.df, Diff)[1:20, ]
 ```
 
 Over-Predictions:
@@ -308,10 +374,7 @@ Over-Predictions:
 
 Top 10 under predictions
 ```{r}
-UnderPre <- df.pre %>%
-  arrange(desc(differ))
-
-UnderPre[1:10,]
+arrange(predValues.df, desc(Diff))[1:20, ]
 ```
 
 Under-Predictions
@@ -327,58 +390,8 @@ Under-Predictions
 10) Ringgold, GA tornado
 
 
-### Assumptions
+## Case studies
 
-```{r}
-summary(m1)
-pchisq(2255, 2192, lower.tail = FALSE) # model is not adequate (p-value > .05)
-```
-
-Observed number of casualties versus predicted rate.
-```{r, eval=FALSE}
-df.glm = st_sf(om = sfdf$om, date = sfdf$Date, state = sfdf$st, obs = sfdf$cas, pre = modelFE$fitted.values, geometry = sfdf$geometry) %>%
-  mutate(differ = obs - pre)
-
-cor(df.glm$obs, df.glm$pre)
-
-df.glm2 = st_sf(om = sfdf$om, date = sfdf$Date, state = sfdf$st, obs = sfdf$cas, pre = exp(fitted.values(modelME)), geometry = sfdf$geometry) %>%
-  mutate(differ = obs - pre)
-
-cor(df.glm2$obs, df.glm2$pre)
-
-df.nb = st_sf(om = sfdf$om, date = sfdf$Date, state = sfdf$st, EF = sfdf$mag, obs = sfdf$cas, pre = fitted.values(modelNB), geometry = sfdf$geometry) %>%
-  mutate(differ = obs - pre)
-
-cor(df.nb$obs, df.nb$pre)
-
-ggplot(df.nb, aes(x = obs, y = pre)) +
-  geom_point() +
-  geom_abline(slope = 1) + 
-  xlab("Observed Number of Casualties") +
-  ylab("Predicted Rate") +
-  scale_x_log10() + scale_y_log10() +
-  geom_text(data=subset(df.nb, obs >= 30),
-            aes(label = state), hjust = 1, vjust = .5)
-
-df.S = st_sf(om = sfdf$om, date = sfdf$Date, state = sfdf$st, EF = sfdf$mag, obs = sfdf$cas, pre = fitted(modelS)[,1], geometry = sfdf$geometry) %>%
-  mutate(differ = obs - pre)
-
-cor(df.S$obs, df.S$pre)
-
-ggplot(df.S, aes(x = obs, y = pre)) +
-  geom_point() +
-  geom_abline(slope = 1) + 
-  xlab("Observed Number of Casualties") +
-  ylab("Predicted Rate") +
-  scale_x_log10() + scale_y_log10() +
-  geom_text(data=subset(df.S, obs >= 30),
-            aes(label = state), hjust = 1.2, vjust = .85)
-```
-
-Look for cases of extreme difference by state.
-
-
------------------------------------
 Camilla, GA
 
 Camilla is a city in Mitchell County, GA with a population of 5,360 as of the 2010 Census. The racial makeup of the city is roughly 65% African American, 32% White. The median household income in the city is \$22,485 and the per capita income for the city is \$13,117. About 35% of families and 38% of the total population are below the poverty line.
