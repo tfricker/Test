@@ -1,6 +1,6 @@
 ---
 title: "Casualty Risk Model"
-author: "Tyler Fricker"
+author: "Tyler Fricker/James B. Elsner"
 date: "3/27/2018"
 output: html_notebook
 editor_options:
@@ -15,7 +15,7 @@ library(lubridate)
 library(sf)
 ```
 
-Import `SocialCorrelates.shp` containing the casualty-producing tornadoes since 1995 and estimates of socioeconomic and demographic data at the tornado level. Add `Date` and `hr` columns to the data frame.
+Import `SocialCorrelates.shp` containing the casualty-producing tornadoes 1995-2016 and estimates of socioeconomic and demographic data at the tornado level. Add `Date` and `hr` columns to the data frame.
 ```{r}
 unzip("SocialCorrelates.zip")
 Tor.sfdf <- st_read(dsn = "SocialCorrelates", 
@@ -45,7 +45,7 @@ as.data.frame(Tor.sfdf) %>%
   summarize(nC = sum(cas),
             nT = n())
 ```
-About 13% of all tornado casualties occurred in areas estimated to have at least one mobile home.c
+About 13% of all tornado casualties occurred in areas estimated to have at least one mobile home.
 
 Look at trends in annual tornado casualties and casualty producing tornadoes.
 ```{r}
@@ -78,14 +78,15 @@ dfM <- Tor.sfdf %>%
             nCas = sum(cas),
             perTorCas = nCas/nT) %>%
   mutate(MonthF = factor(month.abb[mo], levels = month.abb),
-         ci = qt(0.975, df=nT-1) * sd(perTorCas)/sqrt(nT))
+         ci = qt(0.975, df = nT - 1) * sd(perTorCas)/sqrt(nT))
 
 ggplot(dfM, aes(x = mo, y = perTorCas)) +
   geom_point() +
-  geom_errorbar(aes(ymin = perTorCas - ci, ymax = perTorCas + ci)) +
-  scale_x_continuous(breaks = seq(1,12), labels = dfM$MonthF) +
-  scale_y_continuous(limits = c(0, NA)) +
-  xlab("") + ylab("Average Per-Tornado Casualties") +
+  geom_errorbar(aes(ymin = perTorCas - ci, ymax = perTorCas + ci), width = .25) +
+  scale_x_continuous(breaks = seq(1,12), labels = dfM$MonthF, minor_breaks = NULL) +
+  scale_y_continuous(limits = c(0, 20)) +
+  xlab("") + ylab("Casualty Rate") + 
+  ggtitle(label = "Casualty Rate Per Casaulty-Producing Tornado (U.S.)", subtitle = "1995-2016") +
   theme_minimal()
 
 ggplot(dfM, aes(x = MonthF, y = nCas)) +
