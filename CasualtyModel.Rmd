@@ -199,7 +199,7 @@ df$pre <- exp(predict(m4))
 library(ggrepel)
 ggplot(df[df$cas > 50, ], aes(x = cas, y = pre)) +
   geom_point(aes(size = TotlPpl)) +
-  geom_text_repel(aes(label = paste(st, date))) +
+  geom_text_repel(aes(label = paste(st, date)), size = 1.75) +
   geom_abline(slope = 1) + 
   geom_smooth(method = lm, se = FALSE) +
   xlab("Observed Number of Casualties") +
