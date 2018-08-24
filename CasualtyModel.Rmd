@@ -86,7 +86,7 @@ ggplot(dfM, aes(x = mo, y = perTorCas)) +
   scale_x_continuous(breaks = seq(1,12), labels = dfM$MonthF, minor_breaks = NULL) +
   scale_y_continuous(limits = c(0, 20)) +
   xlab("") + ylab("Casualty Rate") + 
-  ggtitle(label = "Casualty Rate Per Casaulty-Producing Tornado (U.S.)", subtitle = "1995-2016") +
+  ggtitle(label = "Casualty Rate Per Casualty-Producing Tornado (U.S.)", subtitle = "1995-2016") +
   theme_minimal()
 
 ggplot(dfM, aes(x = MonthF, y = nCas)) +
@@ -103,14 +103,15 @@ dfH <- Tor.sfdf %>%
   summarize(nT = n(),
             nCas = sum(cas),
             perTorCas = nCas/nT) %>%
-  mutate(ci = qt(0.975, df=nT-1) * sd(perTorCas)/sqrt(nT))
+  mutate(ci = qt(0.975, df = nT - 1) * sd(perTorCas)/sqrt(nT))
 
 ggplot(dfH, aes(x = hr, y = perTorCas)) +
   geom_point() +
-  geom_errorbar(aes(ymin = perTorCas - ci, ymax = perTorCas + ci)) +
+  geom_errorbar(aes(ymin = perTorCas - ci, ymax = perTorCas + ci), width = .25) +
   scale_x_continuous(breaks = seq(0, 24, 4), labels = c("12:00AM", "4:00AM", "8:00AM", "12:00PM", "4:00PM", "8:00PM", "")) +
-  scale_y_continuous(limits = c(0, NA)) +
-  xlab("Hour") + ylab("Average Tornado Casualties") +
+  scale_y_continuous(limits = c(0, 20)) +
+  xlab("") + ylab("Casualty Rate") +
+  ggtitle(label = "Casualty Rate Per Casualty-Producing Tornado (U.S.)", subtitle = "1995-2016") +
   theme_minimal()
 
 ggplot(dfH, aes(x = hr, y = nCas)) +
@@ -189,6 +190,22 @@ m4 <- lmer(formula4, data = df)
 
 summary(m4)
 cor(df$cas, exp(predict(m4)))
+```
+
+Observed vs predicted.
+```{r}
+df$pre <- exp(predict(m4))
+
+library(ggrepel)
+ggplot(df[df$cas > 50, ], aes(x = cas, y = pre)) +
+  geom_point(aes(size = TotlPpl)) +
+  geom_text_repel(aes(label = paste(st, date))) +
+  geom_abline(slope = 1) + 
+  geom_smooth(method = lm, se = FALSE) +
+  xlab("Observed Number of Casualties") +
+  ylab("Predicted Rate") +
+  scale_x_log10() + scale_y_log10() +
+  theme_minimal()
 ```
 
 Work with the **brms** package for mixed effects model. First sample from the priors. Set `inits` to `"0"` rather than the default `"random"`.
