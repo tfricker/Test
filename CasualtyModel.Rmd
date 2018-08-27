@@ -47,7 +47,7 @@ as.data.frame(Tor.sfdf) %>%
 ```
 About 13% of all tornado casualties occurred in areas estimated to have at least one mobile home.
 
-Look at trends in annual tornado casualties and casualty producing tornadoes.
+Look at trends in annual tornado casualties and casualty-producing tornadoes.
 ```{r}
 dfY <- Tor.sfdf %>%
   group_by(yr) %>%
@@ -70,7 +70,7 @@ ggplot(dfY, aes(x = yr, y = ncT)) +
   theme_minimal()
 ```
 
-Look at trends in monthly tornado casualties. I think this is better as points +/- 2 s.e.
+Look at trends in monthly tornado casualties. Points +/- 2 s.e.
 ```{r}
 dfM <- Tor.sfdf %>%
   group_by(mo) %>%
@@ -199,7 +199,7 @@ Observed vs predicted.
 df$pre <- exp(predict(m4))
 
 library(ggrepel)
-ggplot(df[df$cas > 50, ], aes(x = cas, y = pre)) +
+ggplot(df[df$cas >= 50, ], aes(x = cas, y = pre)) +
   geom_point(aes(size = TotlPpl)) +
   geom_text_repel(aes(label = paste(st, date)), size = 1.75) +
   geom_abline(slope = 1) + 
@@ -224,7 +224,7 @@ prior5 <- brm(formula = formula5,
                     set_prior("student_t(3, 3, 10)", class = "Intercept"),
                     set_prior("student_t(3, 0, 10)", class = "sd"),
                     set_prior("student_t(3, 0, 10)", class = "sigma")),
-          sample_prior = "only", seed = 0112,
+          sample_prior = "only", seed = 9112,
           control = list(adapt_delta = .8))
 
 out <- predict(prior5, probs = c(0, 1))
@@ -238,7 +238,7 @@ post5 <- brm(formula = formula5,
                        set_prior("student_t(3, 3, 10)", class = "Intercept"),
                        set_prior("student_t(3, 0, 10)", class = "sd"),
                        set_prior("student_t(3, 0, 10)", class = "sigma")),
-              inits = "0", seed = 0112,
+              inits = "0", seed = 9112,
               control = list(adapt_delta = .8))
 
 summary(post5)
@@ -248,6 +248,8 @@ Correlation between estimated and actual casualties.
 ```{r}
 cor(predict(post5)[, 1], df$cas)
 ```
+
+NOTE: For different seeds the correlation ranged from .48 to .54. May need to generate more samples.
 
 The `posterior_predict()` function generates 3000 samples of cas. Compare the distribution of cas statistics (mean, max) with actual cas.
 
@@ -347,6 +349,16 @@ ggplot(predValues.df, aes(x = Actual, y = Estimate)) +
   scale_x_log10() + scale_y_log10() +
   geom_text(data = subset(predValues.df, Actual >= 30),
             aes(label = st), hjust = 1, vjust = .5) +
+  theme_minimal()
+
+ggplot(predValues.df[predValues.df$Actual >= 50, ], aes(x = Actual, y = Estimate)) +
+  geom_point() +
+  geom_text_repel(aes(label = paste(st, Date)), size = 1.75) +
+  geom_abline(slope = 1) + 
+  geom_smooth(method = lm, se = FALSE) +
+  xlab("Observed Number of Casualties") +
+  ylab("Predicted Rate") +
+  scale_x_log10() + scale_y_log10() +
   theme_minimal()
 ```
 
@@ -459,7 +471,6 @@ Waynesboro, TN & 2015-12-23 & Over (25) & 54.6 \\
 Anderson Hills, AL & 1995-05-18 & Over (121) & 54.6 \\
 
 Average Index of Discrimination: 50.3
-
 
 Gainesville, GA & 1998-03-20 & Under (170) & 65.0 \\
 Columbia, MS & 2014-12-23 & Under (30) & 53.5 \\
