@@ -430,16 +430,15 @@ arrange(predValues.df, desc(Diff))[1:20, ]
 
 Under-Predictions
 1) Joplin, MO tornado
-2) Tuscaloosa-Birmingham, AL tornado
-3) Garland-Rowlett, TX tornado
-4) Gainesville, GA tornado
-5) Camilla, GA tornado (2000)
-6) Camilla, GA tornado (2003)
-7) Picher,OK tornado
-8) Spencer, SD tornado
-9) Madisonville, KY tornado
-10) Ringgold, GA tornado
-
+2) Garland-Rowlett, TX tornado
+3) Gainesville, GA tornado
+4) Camilla, GA tornado (2000)
+5) Camilla, GA tornado (2003)
+6) Spencer, SD tornado
+7) Columbus County, NC, tornado
+8) Smithville, MS/Shottsville, AL tornado
+9) Copeville, TX tornado
+10) Marmaduke, AR/Caruthersville, MO tornado
 
 ## Case studies
 
