@@ -412,16 +412,17 @@ arrange(predValues.df, Diff)[1:20, ]
 ```
 
 Over-Predictions:
-1) Detroit, MI tornado
-2) Hackleburg–Phil Campbell, AL tornado
-3) Nashville, TN tornado
+1) Hackleburg–Phil Campbell, AL tornado
+2) Bridge Creek–Moore, OK tornado
+3) Tuscaloosa-Birmigham, AL tornado
 4) Anderson Hills (Hunstville), AL tornado
-5) St. Louis County, MO tornado
-6) Bridge Creek–Moore, OK tornado
+5) Detroit, MI tornado
+6) Little Rock, AR tornado
 7) Wichita, KS tornado
-8) Little Rock, AR tornado
-9) Louisville, KY tornado
-10) South Bend, IN tornado
+8) St. Louis County, MO tornado
+9) Nashville, TN tornado
+10) Lyons-Salina, KS tornado
+
 
 Top 10 under predictions
 ```{r}
