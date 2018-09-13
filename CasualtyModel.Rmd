@@ -415,9 +415,9 @@ Over-Predictions:
 1) Hackleburg–Phil Campbell, AL tornado
 2) Bridge Creek–Moore, OK tornado
 3) Tuscaloosa-Birmigham, AL tornado
-4) Anderson Hills (Hunstville), AL tornado
-5) Detroit, MI tornado
-6) Little Rock, AR tornado
+4) Detroit, MI tornado
+5) Little Rock, AR tornado
+6) Anderson Hills (Hunstville), AL tornado
 7) Wichita, KS tornado
 8) St. Louis County, MO tornado
 9) Nashville, TN tornado
@@ -436,8 +436,8 @@ Under-Predictions
 4) Camilla, GA tornado (2000)
 5) Camilla, GA tornado (2003)
 6) Spencer, SD tornado
-7) Columbus County, NC, tornado
-8) Smithville, MS/Shottsville, AL tornado
+7) Smithville, MS/Shottsville, AL tornado
+8) Columbus County, NC, tornado
 9) Copeville, TX tornado
 10) Marmaduke, AR/Caruthersville, MO tornado
 
