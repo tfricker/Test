@@ -383,7 +383,7 @@ stateBorders <- us_states(states = sts)
 
 p1 <- ggplot() +
   geom_sf(data = stateBorders) +
-  geom_point(data = predValues.df[predValues.df$Diff >= 0, ], aes(x = slon, y = slat, size = Diff), color = "green", alpha = .3) +
+  geom_point(data = predValues.df[predValues.df$Diff >= 0, ], aes(x = slon, y = slat, size = Diff), color = "#1b7837", alpha = .4) +
   scale_size_continuous(name = "Under\nPrediction", 
                         breaks = c(50, 100, 200, 400, 800), 
                         labels = c(50, 100, 200, 400, 800)) +
@@ -401,6 +401,24 @@ p2 <- ggplot() +
 
 library(patchwork)
 p1/p2
+```
+
+Using T-Map
+```{r}
+library(tmap)
+tm_shape(stateBorders, projection ="+init=epsg:2163") +
+  tm_borders() +
+  tm_shape(predValues.sfdf[predValues.sfdf$Diff >= 0, ]) +
+  tm_bubbles("Diff", col = "#1b7837", sizes.legend = c(50, 100, 500, 1000, 1500), alpha = 0.4, title.size="Under-Prediction", scale = 2.5) + 
+  tm_shape(stateBorders) + 
+  tm_borders(col = "grey", alpha = 0.3) +
+  tm_format('World', legend.position = c("left", "bottom"),
+                   attr.position = c("left", "bottom"),
+                  legend.frame = FALSE) +
+  #tm_format_Europe(legend.position = c("left", "bottom"),
+  #                 attr.position = c("left", "bottom"),
+  #                 legend.frame = TRUE) +
+  tm_layout(frame = FALSE)
 ```
 
 
@@ -436,8 +454,8 @@ Under-Predictions
 4) Camilla, GA tornado (2000)
 5) Camilla, GA tornado (2003)
 6) Spencer, SD tornado
-7) Smithville, MS/Shottsville, AL tornado
-8) Columbus County, NC, tornado
+7) Columbus County, NC, tornado
+8) Smithville, MS/Shottsville, AL tornado
 9) Copeville, TX tornado
 10) Marmaduke, AR/Caruthersville, MO tornado
 
