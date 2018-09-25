@@ -471,23 +471,13 @@ Reasons for the high casualty count are not entirely known. Camilla's warning sy
 
 ```{r}
 library("ggmap")
-Map = get_map(location = "Camilla, Georgia", 
+register_google(key = "AIzaSyB0y87AL2w1o37oLIml81mB5_GWaPgQk_Y")
+Map = get_map(location = c(lon = -84.21046 , lat = 31.23129), 
               source = "stamen",
               zoom = 2,
               color = "bw",
               maptype = "toner")
 ggmap(Map, dev = "extent") + 
-  geom_polygon(aes(x = long, y = lat, group = group), 
-               color = "black", fill = "black",
-               data = mapdata) +
-  geom_segment(aes(x = xmn, xend = xmx, y = ymn, yend = ymn), 
-             color = "red") +
-  geom_segment(aes(x = xmn, xend = xmx, y = ymx, yend = ymx), 
-             color = "red") +
-  geom_segment(aes(x = xmn, xend = xmn, y = ymn, yend = ymx), 
-             color = "red") +
-  geom_segment(aes(x = xmx, xend = xmx, y = ymn, yend = ymx), 
-             color = "red") +
     labs(x = NULL, y = NULL) +
 #  labs(x = expression(paste("Longitude (", degree, "W)")), 
 #       y = expression(paste("Latitude (", degree, "N)"))) +
