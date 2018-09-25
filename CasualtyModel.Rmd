@@ -465,7 +465,7 @@ Camilla, GA
 
 Camilla is a city in Mitchell County, GA with a population of 5,360 as of the 2010 Census. The racial makeup of the city is roughly 65% African American, 32% White. The median household income in the city is \$22,485 and the per capita income for the city is \$13,117. About 35% of families and 38% of the total population are below the poverty line.
 
-Camilla was hit by two significant tornadoes in the early 2000s, both occurring in the early morning and both traveling through the southeast side of the city. The first tornado (EF3) occurred on February 14, 2000 and resulted in 206 casualties. It tore through two major subdivisions and four mobile home parks just south of Camilla. Reports show 200 homes were destroeyd in the tornado, with another 250 homes damaged. The second tornado (EF3) occurred on March 20, 2003 and resulted in 186 casualties. It took a similar path to the 2000 tornado, destroying 66 homes and damaging another 200.
+Camilla was hit by two significant tornadoes in the early 2000s, both occurring in the early morning and both traveling through the southeast side of the city. The first tornado (EF3) occurred on February 14, 2000 and resulted in 186 casualties. It tore through two major subdivisions and four mobile home parks just south of Camilla. Reports show 200 homes were destroeyd in the tornado, with another 250 homes damaged. The second tornado (EF3) occurred on March 20, 2003 and resulted in 206 casualties. It took a similar path to the 2000 tornado, destroying 66 homes and damaging another 200.
 
 Reasons for the high casualty count are not entirely known. Camilla's warning system includes tornado sirens along with watches and warnings from the National Weather Service. The city does suffer from a higher percentage of low-income residents, which indicates poor housing quality. In addition, Camilla has a long history of racial segreggation and tension, highlighted by the fact that a fence separating white and black graves at the local cemetary was removed in 2017 (about 40 years after the Civil Rights Act (1968) was passed).
 
@@ -495,8 +495,6 @@ ggmap(map) +
   labs(x = NULL, y = NULL) +
   theme(legend.position = "none")
 ```
-
-
 
 ### Find discrimination indices here (http://enceladus.isr.umich.edu/race/racestart.asp)
 
