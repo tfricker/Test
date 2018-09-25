@@ -471,12 +471,23 @@ Reasons for the high casualty count are not entirely known. Camilla's warning sy
 
 ```{r}
 library("ggmap")
-us <- c(left = -125, bottom = 25.75, right = -67, top = 49)
-map <- get_stamenmap(us, zoom = 5, maptype = "toner-lite")
+georgia <- c(left = -90.2726, bottom = 25.0396 , right = -75.6719, top = 36.7543)
+map <- get_stamenmap(georgia, 
+                     zoom = 5, 
+                     maptype = "toner", 
+                     color = "bw")
 ggmap(map)
-
-
-# theme(legend.position = "none")
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "none")
+  
+camilla <- c(left = -84.6486, bottom = 30.8658, right = -83.7571, top = 31.6447)
+map <- get_stamenmap(camilla, 
+                     #zoom = 2, 
+                     maptype = "toner", 
+                     color = "bw")
+ggmap(map) +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "none")
 ```
 
 
