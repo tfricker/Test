@@ -471,17 +471,12 @@ Reasons for the high casualty count are not entirely known. Camilla's warning sy
 
 ```{r}
 library("ggmap")
-#register_google(key = "AIzaSyCQ9fdC_e_6KSNBjRxTyUkqefLpu8BgeiM")
-Map = get_map(location = c(lon = -84.21046 , lat = 31.23129), 
-              source = "stamen",
-              zoom = 5,
-              color = "bw",
-              maptype = "toner")
-ggmap(Map, dev = "extent") + 
-    labs(x = NULL, y = NULL) +
-#  labs(x = expression(paste("Longitude (", degree, "W)")), 
-#       y = expression(paste("Latitude (", degree, "N)"))) +
-  theme(legend.position = "none")
+us <- c(left = -125, bottom = 25.75, right = -67, top = 49)
+map <- get_stamenmap(us, zoom = 5, maptype = "toner-lite")
+ggmap(map)
+
+
+# theme(legend.position = "none")
 ```
 
 
