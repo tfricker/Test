@@ -469,6 +469,33 @@ Camilla was hit by two significant tornadoes in the early 2000s, both occurring 
 
 Reasons for the high casualty count are not entirely known. Camilla's warning system includes tornado sirens along with watches and warnings from the National Weather Service. The city does suffer from a higher percentage of low-income residents, which indicates poor housing quality. In addition, Camilla has a long history of racial segreggation and tension, highlighted by the fact that a fence separating white and black graves at the local cemetary was removed in 2017 (about 40 years after the Civil Rights Act (1968) was passed).
 
+```{r}
+library("ggmap")
+Map = get_map(location = "Camilla, Georgia", 
+              source = "stamen",
+              zoom = 2,
+              color = "bw",
+              maptype = "toner")
+ggmap(Map, dev = "extent") + 
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               color = "black", fill = "black",
+               data = mapdata) +
+  geom_segment(aes(x = xmn, xend = xmx, y = ymn, yend = ymn), 
+             color = "red") +
+  geom_segment(aes(x = xmn, xend = xmx, y = ymx, yend = ymx), 
+             color = "red") +
+  geom_segment(aes(x = xmn, xend = xmn, y = ymn, yend = ymx), 
+             color = "red") +
+  geom_segment(aes(x = xmx, xend = xmx, y = ymn, yend = ymx), 
+             color = "red") +
+    labs(x = NULL, y = NULL) +
+#  labs(x = expression(paste("Longitude (", degree, "W)")), 
+#       y = expression(paste("Latitude (", degree, "N)"))) +
+  theme(legend.position = "none")
+```
+
+
+
 ### Find discrimination indices here (http://enceladus.isr.umich.edu/race/racestart.asp)
 
 The model also overperditcs the Grovetown-Augusta, GA tornado (2009-04-10) by 65 casualties, while it underpredicts the Gainesville area, GA tornado (1998-03-20) by more than 100 casualties 174.
