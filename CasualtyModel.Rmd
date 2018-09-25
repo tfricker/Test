@@ -471,10 +471,10 @@ Reasons for the high casualty count are not entirely known. Camilla's warning sy
 
 ```{r}
 library("ggmap")
-register_google(key = "AIzaSyB0y87AL2w1o37oLIml81mB5_GWaPgQk_Y")
+register_google(key = "AIzaSyCQ9fdC_e_6KSNBjRxTyUkqefLpu8BgeiM")
 Map = get_map(location = c(lon = -84.21046 , lat = 31.23129), 
               source = "stamen",
-              zoom = 2,
+              zoom = 5,
               color = "bw",
               maptype = "toner")
 ggmap(Map, dev = "extent") + 
