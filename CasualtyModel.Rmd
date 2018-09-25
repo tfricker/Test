@@ -476,9 +476,15 @@ map <- get_stamenmap(georgia,
                      zoom = 5, 
                      maptype = "toner", 
                      color = "bw")
-ggmap(map)
+ggmap(map) +
   labs(x = NULL, y = NULL) +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
   
 camilla <- c(left = -84.6486, bottom = 30.8658, right = -83.7571, top = 31.6447)
 map <- get_stamenmap(camilla, 
