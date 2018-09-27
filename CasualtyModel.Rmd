@@ -496,6 +496,109 @@ ggmap(map) +
   theme(legend.position = "none")
 ```
 
+Add the tornado paths onto the map. Start with the 2000 tornado.
+```{r}
+Cam = Tor.sfdf[633,]
+cam_3857 <- st_transform(Cam, 3857)
+
+camilla2 <- c(left = -84.5000, bottom = 30.9000, right = -83.7571, top = 31.5000)
+map <- get_stamenmap(camilla2, 
+                     #zoom = 2, 
+                     maptype = "toner", 
+                     color = "bw")
+
+# Define a function to fix the bbox to be in EPSG:3857
+ggmap_bbox <- function(map) {
+  if (!inherits(map, "ggmap")) stop("map must be a ggmap object")
+  # Extract the bounding box (in lat/lon) from the ggmap to a numeric vector, 
+  # and set the names to what sf::st_bbox expects:
+  map_bbox <- setNames(unlist(attr(map, "bb")), 
+                       c("ymin", "xmin", "ymax", "xmax"))
+
+  # Coonvert the bbox to an sf polygon, transform it to 3857, 
+  # and convert back to a bbox (convoluted, but it works)
+  bbox_3857 <- st_bbox(st_transform(st_as_sfc(st_bbox(map_bbox, crs = 4326)), 3857))
+  
+ # Overwrite the bbox of the ggmap object with the transformed coordinates 
+  attr(map, "bb")$ll.lat <- bbox_3857["ymin"]
+  attr(map, "bb")$ll.lon <- bbox_3857["xmin"]
+  attr(map, "bb")$ur.lat <- bbox_3857["ymax"]
+  attr(map, "bb")$ur.lon <- bbox_3857["xmax"]
+  map
+}
+
+map <- ggmap_bbox(map)
+
+A = ggmap(map) + 
+  coord_sf(crs = st_crs(3857)) + # force the ggplot2 map to be in 3857
+  geom_sf(data = cam_3857$geometry, inherit.aes = FALSE) +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "none",
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
+Next, the 2003 tornado
+```{r}
+Cam2 = Tor.sfdf[915,]
+cam2_3857 <- st_transform(Cam2, 3857)
+
+camilla2 <- c(left = -84.5000, bottom = 30.9000, right = -83.7571, top = 31.5000)
+map <- get_stamenmap(camilla2, 
+                     #zoom = 2, 
+                     maptype = "toner", 
+                     color = "bw")
+
+# Define a function to fix the bbox to be in EPSG:3857
+ggmap_bbox <- function(map) {
+  if (!inherits(map, "ggmap")) stop("map must be a ggmap object")
+  # Extract the bounding box (in lat/lon) from the ggmap to a numeric vector, 
+  # and set the names to what sf::st_bbox expects:
+  map_bbox <- setNames(unlist(attr(map, "bb")), 
+                       c("ymin", "xmin", "ymax", "xmax"))
+
+  # Coonvert the bbox to an sf polygon, transform it to 3857, 
+  # and convert back to a bbox (convoluted, but it works)
+  bbox_3857 <- st_bbox(st_transform(st_as_sfc(st_bbox(map_bbox, crs = 4326)), 3857))
+  
+ # Overwrite the bbox of the ggmap object with the transformed coordinates 
+  attr(map, "bb")$ll.lat <- bbox_3857["ymin"]
+  attr(map, "bb")$ll.lon <- bbox_3857["xmin"]
+  attr(map, "bb")$ur.lat <- bbox_3857["ymax"]
+  attr(map, "bb")$ur.lon <- bbox_3857["xmax"]
+  map
+}
+
+map <- ggmap_bbox(map)
+
+B = ggmap(map) + 
+  coord_sf(crs = st_crs(3857)) + # force the ggplot2 map to be in 3857
+  geom_sf(data = cam2_3857$geometry, inherit.aes = FALSE) +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "none",
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
+Combine plots
+```{r}
+source("http://peterhaschke.com/Code/multiplot.R")
+mat = matrix(c(1, 2), nrow = 1, byrow = TRUE)
+A = A + ggtitle("A") + 
+  theme(plot.title=element_text(hjust=0))
+B = B + ggtitle("B") + 
+  theme(plot.title=element_text(hjust=0))
+multiplot(A, B, layout = mat)
+```
+
 ### Find discrimination indices here (http://enceladus.isr.umich.edu/race/racestart.asp)
 
 The model also overperditcs the Grovetown-Augusta, GA tornado (2009-04-10) by 65 casualties, while it underpredicts the Gainesville area, GA tornado (1998-03-20) by more than 100 casualties 174.
