@@ -471,6 +471,21 @@ Reasons for the high casualty count are not entirely known. Camilla's warning sy
 
 ```{r}
 library("ggmap")
+register_google(key = "AIzaSyB0y87AL2w1o37oLIml81mB5_GWaPgQk_Y")
+
+camilla <- c(left = -84.6486, bottom = 30.8658, right = -83.7571, top = 31.6447)
+
+map = get_googlemap(center = c(lat = 31.2313, lon = 84.2105), zoom = 10, maptype = "terrain")
+
+ggmap(map) +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "none")
+```
+
+
+```{r}
+library("ggmap")
+
 georgia <- c(left = -90.2726, bottom = 25.0396 , right = -75.6719, top = 36.7543)
 map <- get_stamenmap(georgia, 
                      zoom = 5, 
