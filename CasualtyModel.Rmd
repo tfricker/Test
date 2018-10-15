@@ -475,7 +475,7 @@ register_google(key = "AIzaSyCQ9fdC_e_6KSNBjRxTyUkqefLpu8BgeiM")
 
 camilla <- c(left = -84.6486, bottom = 30.8658, right = -83.7571, top = 31.6447)
 
-map = get_googlemap(c(lon = 84.2105, lat = 31.2313), zoom = 13, maptype = "terrain")
+map = get_googlemap(c(lon = 84.2105, lat = 31.2313), zoom = 13, maptype = "satellite")
 
 ggmap(map) +
   labs(x = NULL, y = NULL) +
