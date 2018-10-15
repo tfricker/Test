@@ -472,6 +472,7 @@ Reasons for the high casualty count are not entirely known. Camilla's warning sy
 ```{r}
 library("ggmap")
 register_google(key = "AIzaSyAg0GAbWcs0oWZWOMtBzoFWKPxVCU-vquQ")
+# must add billing to the API
 
 camilla <- c(left = -84.6486, bottom = 30.8658, right = -83.7571, top = 31.6447)
 
