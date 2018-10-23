@@ -80,14 +80,17 @@ dfM <- Tor.sfdf %>%
   mutate(MonthF = factor(month.abb[mo], levels = month.abb),
          ci = qt(0.975, df = nT - 1) * sd(perTorCas)/sqrt(nT))
 
-ggplot(dfM, aes(x = mo, y = perTorCas)) +
+A = ggplot(dfM, aes(x = mo, y = perTorCas)) +
   geom_point() +
   geom_errorbar(aes(ymin = perTorCas - ci, ymax = perTorCas + ci), width = .25) +
   scale_x_continuous(breaks = seq(1,12), labels = dfM$MonthF, minor_breaks = NULL) +
   scale_y_continuous(limits = c(0, 20)) +
   xlab("") + ylab("Casualty Rate") + 
-  ggtitle(label = "Casualty Rate Per Casualty-Producing Tornado (U.S.)", subtitle = "1995-2016") +
+#  ggtitle(label = "Casualty Rate Per Casualty-Producing Tornado (U.S.)", subtitle = #"1995-2016") +
   theme_minimal()
+
+A = A + ggtitle("A") + 
+  theme(plot.title=element_text(hjust=0))
 
 ggplot(dfM, aes(x = MonthF, y = nCas)) +
   geom_bar(stat = "identity") +
@@ -106,14 +109,17 @@ dfH <- Tor.sfdf %>%
             perTorCas = nCas/nT) %>%
   mutate(ci = qt(0.975, df = nT - 1) * sd(perTorCas)/sqrt(nT))
 
-ggplot(dfH, aes(x = hr, y = perTorCas)) +
+B = ggplot(dfH, aes(x = hr, y = perTorCas)) +
   geom_point() +
   geom_errorbar(aes(ymin = perTorCas - ci, ymax = perTorCas + ci), width = .25) +
   scale_x_continuous(breaks = seq(0, 24, 4), labels = c("12:00AM", "4:00AM", "8:00AM", "12:00PM", "4:00PM", "8:00PM", "")) +
   scale_y_continuous(limits = c(0, 20)) +
   xlab("") + ylab("Casualty Rate") +
-  ggtitle(label = "Casualty Rate Per Casualty-Producing Tornado (U.S.)", subtitle = "1995-2016") +
+#  ggtitle(label = "Casualty Rate Per Casualty-Producing Tornado (U.S.)", subtitle = #"1995-2016") +
   theme_minimal()
+
+B = B + ggtitle("B") + 
+  theme(plot.title=element_text(hjust=0))
 
 ggplot(dfH, aes(x = hr, y = nCas)) +
   geom_bar(stat = "identity") +
