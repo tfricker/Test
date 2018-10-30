@@ -373,7 +373,7 @@ ggplot(predValues.df[predValues.df$Actual >= 25, ], aes(x = Actual, y = Estimate
   geom_point() +
   #geom_text_repel(aes(label = paste(st, Date)), size = 1.75) +
   geom_abline(slope = 1) + 
-  geom_smooth(method = lm, se = FALSE) +
+#  geom_smooth(method = lm, se = FALSE) +
   xlab("Observed Number of Casualties") +
   ylab("Predicted Rate") +
   scale_x_log10() + scale_y_log10() +
