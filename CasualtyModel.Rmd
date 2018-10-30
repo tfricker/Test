@@ -558,12 +558,13 @@ ggmap(map) +
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank())
   
-camilla <- c(left = -84.6486, bottom = 31, right = -83.7571, top = 31.6)
+camilla <- c(left = -84.6486, bottom = 30.88, right = -83.7571, top = 31.6)
 map <- get_stamenmap(camilla, 
                      maptype = "toner", 
                      color = "bw")
 ggmap(map) +
   labs(x = NULL, y = NULL) +
+  geom_point(aes(x = -84.198, y = 31.219), color = "red", size = 2) +
   theme(legend.position = "none")
 ```
 
@@ -572,10 +573,10 @@ library(tmap)
 library(tmaptools)
 library(albersusa)
 
-states <- usa_sf("aeqd")
+states <- usa_sf("longlat")
 FLALGA <- states %>%
   filter(iso_3166_2 %in% c("FL", "GA", "AL"))
-counties <- counties_sf("aeqd") %>%
+counties <- counties_sf("longlat") %>%
   filter(iso_3166_2 %in% c("FL", "GA", "AL"))
 Mitchell <- counties %>%
   filter(iso_3166_2 == "GA", name == "Mitchell")
