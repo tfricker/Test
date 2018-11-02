@@ -546,10 +546,15 @@ library("ggmap")
 georgia <- c(left = -90.2726, bottom = 25.0396 , right = -75.6719, top = 36.7543)
 map <- get_stamenmap(georgia, 
                      zoom = 5, 
-                     maptype = "toner", 
+                     maptype = "toner-background", 
                      color = "bw")
 ggmap(map) +
   labs(x = NULL, y = NULL) +
+  geom_point(aes(x = -84.198, y = 31.219), color = "red", size = 2) +
+  geom_label(aes(label = "Camilla", x = -84.198, y = 31.219),
+             hjust = -.15,
+             vjust = .25,
+             label.size = 0) +
   theme(legend.position = "none",
         axis.title.x=element_blank(),
         axis.text.x=element_blank(),
@@ -574,8 +579,12 @@ library(tmaptools)
 library(albersusa)
 
 states <- usa_sf("longlat")
-FLALGA <- states %>%
-  filter(iso_3166_2 %in% c("FL", "GA", "AL"))
+Region <- states %>%
+  filter(iso_3166_2 %in% c("GA", "AL", "MS", "SC", "TN", "NC"))
+Region2 <- states %>%
+  filter(iso_3166_2 %in% c("GA", "AL", "MS", "SC", "TN", "NC", "FL"))
+FL <- states %>%
+  filter(iso_3166_2 %in% c("FL"))
 counties <- counties_sf("longlat") %>%
   filter(iso_3166_2 %in% c("FL", "GA", "AL"))
 Mitchell <- counties %>%
@@ -583,18 +592,23 @@ Mitchell <- counties %>%
 Camilla <- geocode_OSM("Camilla, GA", as.sf = TRUE)
 
 tm_shape(states) +
-  tm_polygons() +
-tm_shape(FLALGA, is.master = TRUE) +
-  tm_polygons() +
-  tm_text(text = "name", xmod = c(0, 0, 2)) +
-tm_shape(Mitchell) +
-  tm_polygons(col = "black") +
-  tm_text(text = "name", ymod = -1, col = "black", size = .75) +
+  tm_polygons(col = "white") +
+tm_shape(Region2, is.master = TRUE) +
+  tm_polygons(col = "white") +
+tm_shape(FL) +
+  tm_polygons(col = "white") +
+  tm_text(text = "iso_3166_2", xmod = 1.25) +
+tm_shape(Region) +
+  tm_polygons(col = "white") +
+  tm_text(text = "iso_3166_2") +
+#tm_shape(Mitchell) +
+#  tm_polygons(col = "black") +
+#  tm_text(text = "name", ymod = -1, col = "black", size = .75) +
 tm_shape(Camilla) +
-  tm_dots(col = "red", size = .1) +
-tm_scale_bar(position = c("left", "bottom")) +
-tm_compass(position = c("left", "bottom")) +
-tm_layout(bg.color="lightblue")
+  tm_dots(col = "red", size = .75) +
+#tm_scale_bar(position = c("left", "bottom")) +
+#tm_compass(position = c("left", "bottom")) +
+tm_layout(bg.color="black")
 ```
 
 
