@@ -573,6 +573,7 @@ ggmap(map) +
   theme(legend.position = "none")
 ```
 
+Camilla, Georgia map
 ```{r}
 library(tmap)
 library(tmaptools)
@@ -606,6 +607,57 @@ tm_shape(Region) +
 #  tm_text(text = "name", ymod = -1, col = "black", size = .75) +
 tm_shape(Camilla) +
   tm_dots(col = "red", size = .75) +
+#tm_scale_bar(position = c("left", "bottom")) +
+#tm_compass(position = c("left", "bottom")) +
+tm_layout(bg.color="black")
+```
+
+Spencer, SD map
+```{r}
+states <- usa_sf("longlat")
+Region <- states %>%
+  filter(iso_3166_2 %in% c("ND", "SD", "MN", "IA", "NE", "WY"))
+MT <- states %>%
+  filter(iso_3166_2 %in% c("MT"))
+Spencer <- geocode_OSM("Spencer, SD", as.sf = TRUE)
+
+tm_shape(states) +
+  tm_polygons(col = "white") +
+tm_shape(Region, is.master = TRUE) +
+  tm_polygons(col = "white") +
+  tm_text(text = "iso_3166_2") +
+tm_shape(MT) +
+  tm_polygons(col = "white") +
+  tm_text(text = "iso_3166_2", xmod = 1.25) +
+tm_shape(Spencer) +
+  tm_dots(col = "red", size = .75) +
+#tm_scale_bar(position = c("left", "bottom")) +
+#tm_compass(position = c("left", "bottom")) +
+tm_layout(bg.color="black")
+```
+
+Garland-Rowlett, TX map
+```{r}
+states <- usa_sf("longlat")
+Region <- states %>%
+  filter(iso_3166_2 %in% c("TX", "NM", "OK", "AR", "MS"))
+LA <- states %>%
+  filter(iso_3166_2 %in% c("LA"))
+Garland <- geocode_OSM("Garland, TX", as.sf = TRUE)
+Rowlett <- geocode_OSM("Rowlett, TX", as.sf = TRUE)
+
+tm_shape(states) +
+  tm_polygons(col = "white") +
+tm_shape(Region, is.master = TRUE) +
+  tm_polygons(col = "white") +
+  tm_text(text = "iso_3166_2") +
+tm_shape(LA) +
+  tm_polygons(col = "white") +
+  tm_text(text = "iso_3166_2", xmod = -.75) +
+tm_shape(Garland) +
+  tm_dots(col = "red", size = .75, alpha = .75) +
+tm_shape(Rowlett) +
+  tm_dots(col = "red", size = .75, alpha = .75) +
 #tm_scale_bar(position = c("left", "bottom")) +
 #tm_compass(position = c("left", "bottom")) +
 tm_layout(bg.color="black")
