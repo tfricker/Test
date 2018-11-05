@@ -415,7 +415,7 @@ library(tmap)
 tm_shape(stateBorders, projection ="+init=epsg:2163") +
   tm_borders() +
   tm_shape(predValues.sfdf[predValues.sfdf$Diff >= 0, ]) +
-  tm_bubbles("Diff", col = "#1b7837", sizes.legend = c(50, 100, 500, 1000, 1500), alpha = 0.4, title.size="Under-Prediction", scale = 2.5) + 
+  tm_bubbles("Diff", col = "#1b7837", sizes.legend = c(50, 100, 500, 1000, 1500), alpha = 0.4, title.size="Underprediction", scale = 2.5) + 
   tm_shape(stateBorders) + 
   tm_borders(col = "grey", alpha = 0.3) +
   tm_format('World', legend.position = c("left", "bottom"),
@@ -424,7 +424,8 @@ tm_shape(stateBorders, projection ="+init=epsg:2163") +
   #tm_format_Europe(legend.position = c("left", "bottom"),
   #                 attr.position = c("left", "bottom"),
   #                 legend.frame = TRUE) +
-  tm_layout(frame = FALSE)
+  tm_scale_bar(position = c("right", "bottom")) +
+  tm_layout(frame = FALSE, attr.outside=TRUE)
 ```
 
 
