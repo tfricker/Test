@@ -425,9 +425,11 @@ tm_shape(stateBorders, projection ="+init=epsg:2163") +
   #                 attr.position = c("left", "bottom"),
   #                 legend.frame = TRUE) +
   tm_scale_bar(position = c("right", "bottom")) +
+  #tm_compass(position = c("right", "bottom")) +
   tm_layout(frame = FALSE, attr.outside=TRUE)
 ```
 
+Maps are exported at 8 x 6 in PDF.
 
 ### Tornado casualties and place
 
