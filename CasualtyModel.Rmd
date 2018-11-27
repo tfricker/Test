@@ -473,9 +473,8 @@ Under-Predictions
 Map of North America and US Casualty-producing tornadoes
 ```{r}
 data("World")
-KT.sfdf <- st_read(dsn = "killertor", 
-                    layer = "killertor", 
-                    stringsAsFactors = FALSE)
+
+KT.sfdf <- st_read("/Users/tylerfricker/Desktop/Git Projects/Casualty-Risk-Model/killettor")
 
 NorthAmerica = World %>%
   filter(iso_a3 %in% c("USA", "MEX", "CAN"))
@@ -496,8 +495,10 @@ tm_shape(states) +
   tm_polygons(col = "grey94") +
 tm_shape(Region, is.master = TRUE) +
   tm_polygons(col = "grey94") +
-tm_shape(Tor.sfdf) +
-  tm_polygons()
+tm_shape(KT.sfdf) +
+  tm_polygons() +
+  tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
+  tm_layout(bg.color="white", attr.outside=TRUE)
 ```
 
 
