@@ -470,6 +470,34 @@ Under-Predictions
 
 ## Case studies
 
+Map of North America and US Casualty-producing tornadoes
+```{r}
+data("World")
+
+NorthAmerica = World %>%
+  filter(iso_a3 %in% c("USA", "MEX", "CAN"))
+
+NorthAmerica = st_transform(NorthAmerica, crs = 4121)
+
+tm_shape(NorthAmerica) +
+  tm_polygons(col = "grey94") +
+  #tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
+  #tm_compass(position = c("right", "bottom")) +
+  tm_layout(bg.color="white", attr.outside=TRUE)
+
+states <- usa_sf("longlat")
+Region <- states %>%
+  filter(iso_3166_2 %in% c("Fl", "GA", "AL", "MS", "SC", "TN", "NC", "TX", "OK", "KS", "NE", "SD", "IA", "WI", "MO", "AR", "LA", "OH", "WV", "MI", "IL"))
+
+tm_shape(states) +
+  tm_polygons(col = "grey94") +
+tm_shape(Region, is.master = TRUE) +
+  tm_polygons(col = "grey94") +
+tm_shape(Tor.sfdf) +
+  tm_polygons()
+```
+
+
 Camilla, GA
 
 Camilla is a city in Mitchell County, GA with a population of 5,360 as of the 2010 Census. The racial makeup of the city is roughly 65% African American, 32% White. The median household income in the city is \$22,485 and the per capita income for the city is \$13,117. About 35% of families and 38% of the total population are below the poverty line.
