@@ -473,6 +473,9 @@ Under-Predictions
 Map of North America and US Casualty-producing tornadoes
 ```{r}
 data("World")
+KT.sfdf <- st_read(dsn = "killertor", 
+                    layer = "killertor", 
+                    stringsAsFactors = FALSE)
 
 NorthAmerica = World %>%
   filter(iso_a3 %in% c("USA", "MEX", "CAN"))
