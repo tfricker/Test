@@ -132,7 +132,7 @@ ggplot(dfH, aes(x = hr, y = nCas)) +
 
 Create a new data frame with columns containing logged and scaled variables.
 ```{r}
-df <- as.data.frame(Torov.sfdf) %>%
+df <- as.data.frame(Tor.sfdf) %>%
   mutate(lpopD = log(popD2),
          lED = log(ED),
          lcas = log(cas),
@@ -414,8 +414,9 @@ Using T-Map
 library(tmap)
 tm_shape(stateBorders, projection ="+init=epsg:2163") +
   tm_borders() +
+  tm_fill(col = "grey94") +
   tm_shape(predValues.sfdf[predValues.sfdf$Diff >= 0, ]) +
-  tm_bubbles("Diff", col = "#1b7837", sizes.legend = c(50, 100, 500, 1000, 1500), alpha = 0.4, title.size="Underprediction", scale = 2.5) + 
+  tm_bubbles("Diff", col = "#fd8d3c", sizes.legend = c(50, 100, 500, 1000, 1500), alpha = 0.9, title.size="Underprediction", scale = 2.5) + 
   tm_shape(stateBorders) + 
   tm_borders(col = "grey", alpha = 0.3) +
   tm_format('World', legend.position = c("left", "bottom"),
@@ -609,7 +610,7 @@ tm_shape(Region) +
 #  tm_polygons(col = "black") +
 #  tm_text(text = "name", ymod = -1, col = "black", size = .75) +
 tm_shape(Camilla) +
-  tm_dots(col = "#1b7837", size = .75, alpha = 0.6) +
+  tm_dots(col = "#fd8d3c", size = .75, alpha = 0.9) +
 #tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
 #tm_compass(position = c("right", "bottom")) +
 tm_layout(main.title = "C",bg.color="white", attr.outside=TRUE)
@@ -633,7 +634,7 @@ tm_shape(MT) +
   tm_polygons(col = "grey94") +
 #  tm_text(text = "iso_3166_2", xmod = 1.25) +
 tm_shape(Spencer) +
-  tm_dots(col = "#1b7837", size = .7, alpha = 0.6) +
+  tm_dots(col = "#fd8d3c", size = .7, alpha = 0.9) +
 #tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
 #tm_compass(position = c("left", "bottom")) +
 tm_layout(main.title = "A",bg.color="white", attr.outside=TRUE)
@@ -658,7 +659,7 @@ tm_shape(LA) +
   tm_polygons(col = "grey94") +
 #  tm_text(text = "iso_3166_2", xmod = -.75) +
 tm_shape(Garland) +
-  tm_dots(col = "#1b7837", size = 2, alpha = 0.6) +
+  tm_dots(col = "#fd8d3c", size = 2, alpha = 0.9) +
 #tm_shape(Rowlett) +
 #  tm_dots(col = "red", size = .75, alpha = .75) +
 #tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
@@ -687,7 +688,7 @@ tm_shape(Region) +
   tm_polygons(col = "grey94") +
 #  tm_text(text = "iso_3166_2") +
 tm_shape(Shottsville) +
-  tm_dots(col = "#1b7837", size = .65, alpha = 0.6) +
+  tm_dots(col = "#fd8d3c", size = .65, alpha = 0.9) +
 #tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
 #tm_compass(position = c("right", "bottom")) +
 tm_layout(main.title = "D", bg.color="white", attr.outside=TRUE)
