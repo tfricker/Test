@@ -2,7 +2,7 @@
 title: "Casualty Risk Model"
 author: "Tyler Fricker/James B. Elsner"
 date: "3/27/2018"
-output: html_notebook
+output: html_document
 editor_options:
   chunk_output_type: console
 ---
