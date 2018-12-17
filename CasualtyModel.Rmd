@@ -132,7 +132,7 @@ ggplot(dfH, aes(x = hr, y = nCas)) +
 
 Create a new data frame with columns containing logged and scaled variables.
 ```{r}
-df <- as.data.frame(Tor.sfdf) %>%
+df <- as.data.frame(Torov.sfdf) %>%
   mutate(lpopD = log(popD2),
          lED = log(ED),
          lcas = log(cas),
@@ -595,24 +595,24 @@ Mitchell <- counties %>%
   filter(iso_3166_2 == "GA", name == "Mitchell")
 Camilla <- geocode_OSM("Camilla, GA", as.sf = TRUE)
 
-tm_shape(states) +
+C = tm_shape(states) +
   tm_polygons(col = "grey94") +
 tm_shape(Region2, is.master = TRUE) +
   tm_polygons(col = "grey94") +
 tm_shape(FL) +
   tm_polygons(col = "grey94") +
-  tm_text(text = "iso_3166_2", xmod = 1.25) +
+#  tm_text(text = "iso_3166_2", xmod = 1.25) +
 tm_shape(Region) +
   tm_polygons(col = "grey94") +
-  tm_text(text = "iso_3166_2") +
+#  tm_text(text = "iso_3166_2") +
 #tm_shape(Mitchell) +
 #  tm_polygons(col = "black") +
 #  tm_text(text = "name", ymod = -1, col = "black", size = .75) +
 tm_shape(Camilla) +
   tm_dots(col = "#1b7837", size = .75, alpha = 0.6) +
-tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
+#tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
 #tm_compass(position = c("right", "bottom")) +
-tm_layout(bg.color="white", attr.outside=TRUE)
+tm_layout(main.title = "C",bg.color="white", attr.outside=TRUE)
 ```
 
 Spencer, SD map
@@ -624,19 +624,19 @@ MT <- states %>%
   filter(iso_3166_2 %in% c("MT"))
 Spencer <- geocode_OSM("Spencer, SD", as.sf = TRUE)
 
-tm_shape(states) +
+A = tm_shape(states) +
   tm_polygons(col = "grey94") +
 tm_shape(Region, is.master = TRUE) +
   tm_polygons(col = "grey94") +
-  tm_text(text = "iso_3166_2") +
+#  tm_text(text = "iso_3166_2") +
 tm_shape(MT) +
   tm_polygons(col = "grey94") +
-  tm_text(text = "iso_3166_2", xmod = 1.25) +
+#  tm_text(text = "iso_3166_2", xmod = 1.25) +
 tm_shape(Spencer) +
   tm_dots(col = "#1b7837", size = .7, alpha = 0.6) +
-tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
+#tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
 #tm_compass(position = c("left", "bottom")) +
-tm_layout(bg.color="white", attr.outside=TRUE)
+tm_layout(main.title = "A",bg.color="white", attr.outside=TRUE)
 ```
 
 Garland-Rowlett, TX map
@@ -649,22 +649,55 @@ LA <- states %>%
 Garland <- geocode_OSM("Garland, TX", as.sf = TRUE)
 #Rowlett <- geocode_OSM("Rowlett, TX", as.sf = TRUE)
 
-tm_shape(states) +
+B = tm_shape(states) +
   tm_polygons(col = "grey94") +
 tm_shape(Region, is.master = TRUE) +
   tm_polygons(col = "grey94") +
-  tm_text(text = "iso_3166_2") +
+#  tm_text(text = "iso_3166_2") +
 tm_shape(LA) +
   tm_polygons(col = "grey94") +
-  tm_text(text = "iso_3166_2", xmod = -.75) +
+#  tm_text(text = "iso_3166_2", xmod = -.75) +
 tm_shape(Garland) +
   tm_dots(col = "#1b7837", size = 2, alpha = 0.6) +
 #tm_shape(Rowlett) +
 #  tm_dots(col = "red", size = .75, alpha = .75) +
-tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
+#tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
 #tm_compass(position = c("left", "bottom")) +
-tm_layout(bg.color="white", attr.outside = TRUE)
+tm_layout(main.title = "B",bg.color="white", attr.outside = TRUE)
 ```
+
+Smithville, MS/Shottville, AL map
+```{r}
+Region <- states %>%
+  filter(iso_3166_2 %in% c("GA", "AL", "MS", "SC", "TN", "NC"))
+Region2 <- states %>%
+  filter(iso_3166_2 %in% c("GA", "AL", "MS", "SC", "TN", "NC", "FL"))
+FL <- states %>%
+  filter(iso_3166_2 %in% c("FL"))
+Shottsville <- geocode_OSM("Shottsville, AL", as.sf = TRUE)
+
+D = tm_shape(states) +
+  tm_polygons(col = "grey94") +
+tm_shape(Region2, is.master = TRUE) +
+  tm_polygons(col = "grey94") +
+tm_shape(FL) +
+  tm_polygons(col = "grey94") +
+#  tm_text(text = "iso_3166_2", xmod = 1.25) +
+tm_shape(Region) +
+  tm_polygons(col = "grey94") +
+#  tm_text(text = "iso_3166_2") +
+tm_shape(Shottsville) +
+  tm_dots(col = "#1b7837", size = .65, alpha = 0.6) +
+#tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
+#tm_compass(position = c("right", "bottom")) +
+tm_layout(main.title = "D", bg.color="white", attr.outside=TRUE)
+```
+
+Plot together
+```{r}
+tmap_arrange(A, B, C, D, ncol = 2)
+```
+
 
 
 ### Find discrimination indices here (http://enceladus.isr.umich.edu/race/racestart.asp)
