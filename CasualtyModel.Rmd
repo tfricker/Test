@@ -630,7 +630,7 @@ tm_shape(Camilla) +
   tm_dots(col = "#fd8d3c", size = .75, alpha = 0.9) +
 #tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
 #tm_compass(position = c("right", "bottom")) +
-tm_layout(main.title = "C",bg.color="white", attr.outside=TRUE)
+tm_layout(main.title = "Camilla, GA",bg.color="white", attr.outside=TRUE)
 ```
 
 Spencer, SD map
@@ -654,7 +654,7 @@ tm_shape(Spencer) +
   tm_dots(col = "#fd8d3c", size = .7, alpha = 0.9) +
 #tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
 #tm_compass(position = c("left", "bottom")) +
-tm_layout(main.title = "A",bg.color="white", attr.outside=TRUE)
+tm_layout(main.title = "Spencer, SD",bg.color="white", attr.outside=TRUE)
 ```
 
 Garland-Rowlett, TX map
@@ -681,7 +681,7 @@ tm_shape(Garland) +
 #  tm_dots(col = "red", size = .75, alpha = .75) +
 #tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
 #tm_compass(position = c("left", "bottom")) +
-tm_layout(main.title = "B",bg.color="white", attr.outside = TRUE)
+tm_layout(main.title = "Garland-Rowlett, TX",bg.color="white", attr.outside = TRUE)
 ```
 
 Smithville, MS/Shottville, AL map
@@ -708,14 +708,13 @@ tm_shape(Shottsville) +
   tm_dots(col = "#fd8d3c", size = .65, alpha = 0.9) +
 #tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
 #tm_compass(position = c("right", "bottom")) +
-tm_layout(main.title = "D", bg.color="white", attr.outside=TRUE)
+tm_layout(main.title = "Smithville, MS/Shottsville, AL", bg.color="white", attr.outside=TRUE)
 ```
 
 Plot together
 ```{r}
 tmap_arrange(A, B, C, D, ncol = 2)
 ```
-
 
 
 ### Find discrimination indices here (http://enceladus.isr.umich.edu/race/racestart.asp)
