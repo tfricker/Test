@@ -684,7 +684,7 @@ tm_shape(Garland) +
 tm_layout(main.title = "Garland-Rowlett, TX",bg.color="white", attr.outside = TRUE)
 ```
 
-Smithville, MS/Shottville, AL map
+Smithville, MS/Shottsville, AL map
 ```{r}
 Region <- states %>%
   filter(iso_3166_2 %in% c("GA", "AL", "MS", "SC", "TN", "NC"))
