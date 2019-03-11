@@ -125,7 +125,7 @@ B = B + ggtitle("B") +
   theme(plot.title=element_text(hjust=0))
 
 source("http://peterhaschke.com/Code/multiplot.R")
-multiplot(A, B, layout = mat)
+#multiplot(A, B, layout = mat)
 ```
 
 Bar graph of casualties by hr
@@ -352,8 +352,8 @@ predValues.sfdf <- st_sf(predValues.df,
 
 UnderpredValues.df <- predValues.df[predValues.df$Actual >= 25 & predValues.df$Diff >= 0,]
 
-UDTExamples.df <- UnderpredValues.df[c(14, 21, 36, 63, 80),] %>%
-  mutate(Names = c("Spencer, SD", "Camilla, GA", "Camilla, GA", "Smithville, MS/Shottsville, AL", "Garland-Rowlett, TX"))
+UDTExamples.df <- UnderpredValues.df[c(16, 24, 38, 66, 84),] %>%
+  mutate(Names = c("Spencer, SD", "Camilla, GA", "Camilla, GA",  "Smithville, MS/Shottsville, AL", "Garland-Rowlett, TX"))
 
 ```
 
