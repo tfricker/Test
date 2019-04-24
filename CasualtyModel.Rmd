@@ -708,12 +708,67 @@ tm_shape(Shottsville) +
   tm_dots(col = "#fd8d3c", size = .65, alpha = 0.9) +
 #tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
 #tm_compass(position = c("right", "bottom")) +
-tm_layout(main.title = "Smithville, MS/Shottsville, AL", bg.color="white", attr.outside=TRUE)
+tm_layout(main.title = "Smithville, MS/\nShottsville, AL", bg.color="white", attr.outside=TRUE)
 ```
+
+Gainesville, GA
+```{r}
+Region <- states %>%
+  filter(iso_3166_2 %in% c("GA", "AL", "MS", "SC", "TN", "NC"))
+Region2 <- states %>%
+  filter(iso_3166_2 %in% c("GA", "AL", "MS", "SC", "TN", "NC", "FL"))
+FL <- states %>%
+  filter(iso_3166_2 %in% c("FL"))
+Gainesville <- geocode_OSM("Gainesville, GA", as.sf = TRUE)
+
+E = tm_shape(states) +
+  tm_polygons(col = "grey94") +
+tm_shape(Region2, is.master = TRUE) +
+  tm_polygons(col = "grey94") +
+tm_shape(FL) +
+  tm_polygons(col = "grey94") +
+#  tm_text(text = "iso_3166_2", xmod = 1.25) +
+tm_shape(Region) +
+  tm_polygons(col = "grey94") +
+#  tm_text(text = "iso_3166_2") +
+tm_shape(Gainesville) +
+  tm_dots(col = "#fd8d3c", size = .77, alpha = 0.9) +
+#tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
+#tm_compass(position = c("right", "bottom")) +
+tm_layout(main.title = "Gainesville, GA", bg.color="white", attr.outside=TRUE)
+```
+
+Marmaduke, AR/Caruthersville, MO
+```{r}
+Region <- states %>%
+  filter(iso_3166_2 %in% c("GA", "AL", "MS", "SC", "TN", "NC"))
+Region2 <- states %>%
+  filter(iso_3166_2 %in% c("GA", "AL", "MS", "SC", "TN", "NC", "FL"))
+FL <- states %>%
+  filter(iso_3166_2 %in% c("FL"))
+Marmaduke <- geocode_OSM("Marmaduke, AR", as.sf = TRUE)
+
+f = tm_shape(states) +
+  tm_polygons(col = "grey94") +
+tm_shape(Region2, is.master = TRUE) +
+  tm_polygons(col = "grey94") +
+tm_shape(FL) +
+  tm_polygons(col = "grey94") +
+#  tm_text(text = "iso_3166_2", xmod = 1.25) +
+tm_shape(Region) +
+  tm_polygons(col = "grey94") +
+#  tm_text(text = "iso_3166_2") +
+tm_shape(Marmaduke) +
+  tm_dots(col = "#fd8d3c", size = .55, alpha = 0.9) +
+#tm_scale_bar(position = c("RIGHT", "BOTTOM")) +
+#tm_compass(position = c("right", "bottom")) +
+tm_layout(main.title = "Marmaduke, AR/\nCaruthersville, MO", bg.color="white", attr.outside=TRUE)
+```
+
 
 Plot together
 ```{r}
-tmap_arrange(A, B, C, D, ncol = 2)
+tmap_arrange(A, B, C, D, E, f, ncol = 3)
 ```
 
 
