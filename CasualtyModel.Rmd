@@ -352,8 +352,8 @@ predValues.sfdf <- st_sf(predValues.df,
 
 UnderpredValues.df <- predValues.df[predValues.df$Actual >= 25 & predValues.df$Diff >= 0,]
 
-UDTExamples.df <- UnderpredValues.df[c(16, 24, 38, 66, 84),] %>%
-  mutate(Names = c("Spencer, SD", "Camilla, GA", "Camilla, GA",  "Smithville, MS/Shottsville, AL", "Garland-Rowlett, TX"))
+UDTExamples.df <- UnderpredValues.df[c(14, 16, 23, 37, 45, 64, 82),] %>%
+  mutate(Names = c("Gainesville, GA", "Spencer, SD", "Camilla, GA", "Camilla, GA", "Marmaduke, AR/Caruthersville, MO", "Smithville, MS/Shottsville, AL", "Garland-Rowlett, TX"))
 
 ```
 
@@ -387,7 +387,7 @@ ggplot(predValues.df, aes(x = Actual, y = Estimate)) +
 ggplot(predValues.df[predValues.df$Actual >= 25, ], aes(x = Actual, y = Estimate)) +
   geom_point(col = "#fd8d3c") +
   geom_point(data = UnderpredValues.df, aes(x = Actual, y = Estimate, size = UnderpredValues.df$Diff), col = "#fd8d3c") +
-  geom_text_repel(data = UDTExamples.df, aes(label = Names), size = 2.5, nudge_x = .08) +
+  geom_text_repel(data = UDTExamples.df, aes(label = Names), size = 2.5, nudge_x = .1) +
   geom_abline(slope = 1) + 
 #  geom_smooth(method = lm, se = FALSE) +
   xlab("Observed Number of Casualties") +
