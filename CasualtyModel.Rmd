@@ -352,7 +352,7 @@ predValues.sfdf <- st_sf(predValues.df,
 
 UnderpredValues.df <- predValues.df[predValues.df$Actual >= 25 & predValues.df$Diff >= 0,]
 
-UDTExamples.df <- UnderpredValues.df[c(14, 16, 23, 37, 45, 64, 82),] %>%
+UDTExamples.df <- UnderpredValues.df[c(14, 16, 24, 38, 45, 65, 82),] %>%
   mutate(Names = c("Gainesville, GA", "Spencer, SD", "Camilla, GA", "Camilla, GA", "Marmaduke, AR/Caruthersville, MO", "Smithville, MS/Shottsville, AL", "Garland-Rowlett, TX"))
 
 ```
@@ -360,6 +360,7 @@ UDTExamples.df <- UnderpredValues.df[c(14, 16, 23, 37, 45, 64, 82),] %>%
 Over/Under prediction plot.
 ```{r}
 library(ggridges)
+library(ggrepel)
 ggplot(predValues.df[abs(predValues.df$Diff) < 100, ], 
        aes(x = Diff, y = Year, group = Year, height = ..density..)) +
      geom_density_ridges(scale = 3, color = "white") + 
