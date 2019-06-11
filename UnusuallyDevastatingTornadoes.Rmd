@@ -238,6 +238,8 @@ Work with the **brms** package for mixed effects model. First sample from the pr
 ```{r}
 library(brms)
 
+set.seed(2224)
+
 formula5 <- cas | trunc(lb = 1) ~ syr + lpopD + lED + lpopD:lED + smh + (1|hr) + (1|mo)
 get_prior(formula5, data = df, family = lognormal)
 
