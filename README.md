@@ -1,3 +1,3 @@
 # Unusually-Devastating-Tornadoes
 
-A model for estimating the number of tornado casualties
+Files associated with our paper accepted in the Annals of the American Association of Geographers.
